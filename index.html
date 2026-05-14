@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -28,17 +29,17 @@ select option{background:var(--bg3)}
 .app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
 
 /* TOP BAR */
-.topbar{background:var(--navy2);padding:0 12px;display:flex;align-items:center;gap:8px;height:54px;flex-shrink:0;border-bottom:1px solid var(--border)}
+.topbar{background:var(–navy2);padding:0 12px;display:flex;align-items:center;gap:8px;height:54px;flex-shrink:0;border-bottom:1px solid var(–border)}
 .topbar-title{flex:1;text-align:center;font-weight:800;font-size:17px;letter-spacing:.4px}
 .score-box{display:flex;align-items:center;gap:5px}
-.score-num{font-size:22px;font-weight:900;min-width:30px;text-align:center;color:var(--gold)}
-.score-btn{width:30px;height:30px;border-radius:8px;background:var(--navy3);font-size:20px;line-height:1;font-weight:700;display:flex;align-items:center;justify-content:center}
-.undo-btn{width:36px;height:36px;border-radius:10px;background:var(--navy3);display:flex;align-items:center;justify-content:center;font-size:18px;margin-left:2px}
+.score-num{font-size:22px;font-weight:900;min-width:30px;text-align:center;color:var(–gold)}
+.score-btn{width:30px;height:30px;border-radius:8px;background:var(–navy3);font-size:20px;line-height:1;font-weight:700;display:flex;align-items:center;justify-content:center}
+.undo-btn{width:36px;height:36px;border-radius:10px;background:var(–navy3);display:flex;align-items:center;justify-content:center;font-size:18px;margin-left:2px}
 
 /* BOTTOM NAV */
-.bottom-nav{background:var(--navy2);border-top:1px solid var(--border);display:flex;height:58px;flex-shrink:0;safe-area-inset-bottom:env(safe-area-inset-bottom)}
-.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;font-weight:700;color:var(--text2);cursor:pointer;letter-spacing:.3px;padding-bottom:2px}
-.nav-tab.active{color:var(--gold)}
+.bottom-nav{background:var(–navy2);border-top:1px solid var(–border);display:flex;height:58px;flex-shrink:0;safe-area-inset-bottom:env(safe-area-inset-bottom)}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;font-weight:700;color:var(–text2);cursor:pointer;letter-spacing:.3px;padding-bottom:2px}
+.nav-tab.active{color:var(–gold)}
 .nav-tab .ni{font-size:20px;line-height:1}
 
 /* PAGES */
@@ -46,20 +47,20 @@ select option{background:var(--bg3)}
 .page.active{display:flex}
 
 /* ====== SCOUT ====== */
-.match-bar{background:var(--navy2);padding:5px 12px;display:flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0;border-bottom:1px solid var(--border)}
+.match-bar{background:var(–navy2);padding:5px 12px;display:flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0;border-bottom:1px solid var(–border)}
 .match-bar span{font-size:13px;font-weight:700}
-.match-bar .sep{color:var(--text3);font-weight:400}
+.match-bar .sep{color:var(–text3);font-weight:400}
 
 .scout-body{flex:1;display:grid;grid-template-columns:auto 1fr;overflow:hidden}
 
 /* player list */
-.players-col{background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding:6px 5px;display:flex;flex-direction:column;gap:4px;width:112px}
-.p-btn{border-radius:12px;padding:0 8px;height:46px;display:flex;align-items:center;gap:7px;background:var(--navy);font-size:13px;font-weight:700;width:100%;transition:none;overflow:hidden}
-.p-btn.sel{background:var(--gold);color:var(--navy2)}
-.p-btn.sel .p-num{background:rgba(0,0,0,.2);color:var(--navy2)}
+.players-col{background:var(–bg2);border-right:1px solid var(–border);overflow-y:auto;padding:6px 5px;display:flex;flex-direction:column;gap:4px;width:112px}
+.p-btn{border-radius:12px;padding:0 8px;height:46px;display:flex;align-items:center;gap:7px;background:var(–navy);font-size:13px;font-weight:700;width:100%;transition:none;overflow:hidden}
+.p-btn.sel{background:var(–gold);color:var(–navy2)}
+.p-btn.sel .p-num{background:rgba(0,0,0,.2);color:var(–navy2)}
 .p-num{min-width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
 .p-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
-.p-add{background:var(--bg4);opacity:.75}
+.p-add{background:var(–bg4);opacity:.75}
 
 /* action grid */
 .actions-col{display:flex;flex-direction:column;padding:5px;gap:4px;overflow-y:auto}
@@ -74,36 +75,36 @@ select option{background:var(--bg3)}
 .ab.q3{background:#450a0a;color:#f87171;border:2px solid #7f1d1d}
 .pt-row{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:2px;flex-shrink:0}
 .pt-btn{border-radius:12px;height:40px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;gap:4px}
-.pt-btn.pt{background:var(--navy3);color:var(--gold)}
+.pt-btn.pt{background:var(–navy3);color:var(–gold)}
 .pt-btn.er{background:#450a0a;color:#f87171;border:1px solid #7f1d1d}
 
 /* log strip */
-.log-strip{background:var(--bg2);border-top:1px solid var(--border);overflow-x:auto;white-space:nowrap;padding:5px 8px;flex-shrink:0;height:36px;display:flex;align-items:center;gap:5px}
-.log-chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border-radius:20px;padding:3px 9px;font-size:11px;cursor:pointer;flex-shrink:0;white-space:nowrap}
+.log-strip{background:var(–bg2);border-top:1px solid var(–border);overflow-x:auto;white-space:nowrap;padding:5px 8px;flex-shrink:0;height:36px;display:flex;align-items:center;gap:5px}
+.log-chip{display:inline-flex;align-items:center;gap:4px;background:var(–bg3);border-radius:20px;padding:3px 9px;font-size:11px;cursor:pointer;flex-shrink:0;white-space:nowrap}
 
 /* ====== FORM PAGES ====== */
 .form-wrap{padding:14px;max-width:560px;width:100%;margin:0 auto}
-.sec-label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin:18px 0 8px}
+.sec-label{font-size:11px;font-weight:700;color:var(–text2);text-transform:uppercase;letter-spacing:.8px;margin:18px 0 8px}
 .fg{margin-bottom:11px}
-.fg label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
+.fg label{font-size:12px;color:var(–text2);display:block;margin-bottom:5px}
 .r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-.big-btn{width:100%;padding:14px;border-radius:var(--rnd);font-size:15px;font-weight:800;background:var(--navy3);color:var(--text)}
-.big-btn.primary{background:var(--gold);color:var(--navy2)}
-.big-btn.danger{background:var(--red2)}
-.match-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rnd);padding:11px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.big-btn{width:100%;padding:14px;border-radius:var(–rnd);font-size:15px;font-weight:800;background:var(–navy3);color:var(–text)}
+.big-btn.primary{background:var(–gold);color:var(–navy2)}
+.big-btn.danger{background:var(–red2)}
+.match-card{background:var(–bg2);border:1px solid var(–border);border-radius:var(–rnd);padding:11px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
 .iBtn{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
-.iBtn.ghost{background:var(--bg3)}
+.iBtn.ghost{background:var(–bg3)}
 .iBtn.red{background:#3d1010}
 
 /* ====== ROSTER ====== */
-.team-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rnd);overflow:hidden;margin-bottom:12px}
-.team-hdr{padding:11px 13px;background:var(--bg3);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
-.p-pill{display:inline-flex;align-items:center;gap:5px;background:var(--bg4);border-radius:20px;padding:4px 10px 4px 5px;margin:3px}
-.p-pill-num{width:20px;height:20px;border-radius:5px;background:var(--navy3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
+.team-card{background:var(–bg2);border:1px solid var(–border);border-radius:var(–rnd);overflow:hidden;margin-bottom:12px}
+.team-hdr{padding:11px 13px;background:var(–bg3);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(–border)}
+.p-pill{display:inline-flex;align-items:center;gap:5px;background:var(–bg4);border-radius:20px;padding:4px 10px 4px 5px;margin:3px}
+.p-pill-num{width:20px;height:20px;border-radius:5px;background:var(–navy3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
 
 /* ====== STATS ====== */
-.stat-sec{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rnd);overflow:hidden;margin-bottom:12px}
+.stat-sec{background:var(–bg2);border:1px solid var(–border);border-radius:var(–rnd);overflow:hidden;margin-bottom:12px}
 .stat-hdr{padding:9px 13px;font-size:13px;font-weight:800;letter-spacing:.3px}
 .h-att{background:#0a2e18;color:#4ade80}
 .h-dif{background:#0e2a4a;color:#60a5fa}
@@ -111,8 +112,8 @@ select option{background:var(--bg3)}
 .h-batt{background:#3a2200;color:#fbbf24}
 .h-rice{background:#3a1200;color:#f97316}
 table{width:100%;border-collapse:collapse;font-size:12px}
-th{padding:6px 8px;text-align:left;color:var(--text3);font-size:10px;font-weight:700;border-bottom:1px solid var(--border);white-space:nowrap;text-transform:uppercase}
-td{padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+th{padding:6px 8px;text-align:left;color:var(–text3);font-size:10px;font-weight:700;border-bottom:1px solid var(–border);white-space:nowrap;text-transform:uppercase}
+td{padding:6px 8px;border-bottom:1px solid var(–border);white-space:nowrap}
 tr:last-child td{border-bottom:none}
 .g{color:#4ade80;font-weight:700}
 .y{color:#fbbf24;font-weight:700}
@@ -121,15 +122,16 @@ tr:last-child td{border-bottom:none}
 
 /* ====== MODAL ====== */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:flex-end;z-index:200}
-.modal{background:var(--bg2);border-radius:22px 22px 0 0;padding:16px 16px 36px;width:100%;max-height:88vh;overflow-y:auto}
-.modal-handle{width:38px;height:4px;background:var(--bg4);border-radius:4px;margin:0 auto 14px}
+.modal{background:var(–bg2);border-radius:22px 22px 0 0;padding:16px 16px 36px;width:100%;max-height:88vh;overflow-y:auto}
+.modal-handle{width:38px;height:4px;background:var(–bg4);border-radius:4px;margin:0 auto 14px}
 .modal h2{font-size:17px;font-weight:800;margin-bottom:14px}
 .modal-btns{display:flex;gap:10px;margin-top:14px}
 .modal-btns .big-btn{flex:1;margin:0}
 
-.empty{text-align:center;padding:50px 20px;color:var(--text3);font-size:13px}
+.empty{text-align:center;padding:50px 20px;color:var(–text3);font-size:13px}
 .badge{padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;background:#0e2a4a;color:#60a5fa}
 </style>
+
 </head>
 <body>
 <div class="app" id="app"></div>
@@ -147,175 +149,176 @@ const QL=['++','+','–','='];
 const QC=['q0','q1','q2','q3'];
 const SK=AK.flatMap(k=>QL.map(q=>k+q));
 
-function ld(k,d){try{return JSON.parse(localStorage.getItem(k)||'null')||d;}catch(e){return d;}}
+function ld(k,d){try{return JSON.parse(localStorage.getItem(k)||‘null’)||d;}catch(e){return d;}}
 function sv(k,v){localStorage.setItem(k,JSON.stringify(v));}
-function em(){return{id:null,date:'',loc:'',gnum:'',home:'',away:'',players:[],log:[],stats:{}};}
+function em(){return{id:null,date:’’,loc:’’,gnum:’’,home:’’,away:’’,players:[],log:[],stats:{}};}
 
 let S={
-  page:'home',
-  rosters:ld('vb_rosters',[]),
-  matches:ld('vb_matches',[]),
-  cur:em(),
-  sH:0,sA:0,
-  sel:null,
-  modal:null,
-  mf:{date:'',loc:'',gnum:'',home:'',away:'',rid:''},
-  rf:{name:'',num:'',role:ROLES[0]},
-  erid:null,
-  stab:'att',
+page:‘home’,
+rosters:ld(‘vb_rosters’,[]),
+matches:ld(‘vb_matches’,[]),
+cur:em(),
+sH:0,sA:0,
+sel:null,
+modal:null,
+mf:{date:’’,loc:’’,gnum:’’,home:’’,away:’’,rid:’’},
+rf:{name:’’,num:’’,role:ROLES[0]},
+erid:null,
+stab:‘att’,
 };
 
 function ist(pid){
-  if(!S.cur.stats[pid])S.cur.stats[pid]={};
-  SK.forEach(k=>{if(S.cur.stats[pid][k]==null)S.cur.stats[pid][k]=0;});
+if(!S.cur.stats[pid])S.cur.stats[pid]={};
+SK.forEach(k=>{if(S.cur.stats[pid][k]==null)S.cur.stats[pid][k]=0;});
 }
 function pct(a,b){return b?Math.round(a/b*100):0;}
-function pc(p){return p>=60?'g':p>=30?'y':'r';}
+function pc(p){return p>=60?‘g’:p>=30?‘y’:‘r’;}
 function actPlayers(){
-  return(S.cur.players||[]).filter(p=>S.cur.stats?.[p.id]&&SK.some(k=>(S.cur.stats[p.id][k]||0)>0));
+return(S.cur.players||[]).filter(p=>S.cur.stats?.[p.id]&&SK.some(k=>(S.cur.stats[p.id][k]||0)>0));
 }
 
 /* match */
 function startMatch(){
-  const f=S.mf;
-  if(!f.home||!f.away){alert('Inserisci le squadre');return;}
-  let players=[];
-  if(f.rid){const r=S.rosters.find(r=>r.id==f.rid);if(r)players=r.players.map(p=>({...p}));}
-  S.cur={id:Date.now(),date:f.date,loc:f.loc,gnum:f.gnum,home:f.home,away:f.away,players,log:[],stats:{}};
-  players.forEach(p=>ist(p.id));
-  S.sel=players[0]?.id||null;
-  S.sH=0;S.sA=0;
-  S.modal=null;S.page='scout';
-  render();
+const f=S.mf;
+if(!f.home||!f.away){alert(‘Inserisci le squadre’);return;}
+let players=[];
+if(f.rid){const r=S.rosters.find(r=>r.id==f.rid);if(r)players=r.players.map(p=>({…p}));}
+S.cur={id:Date.now(),date:f.date,loc:f.loc,gnum:f.gnum,home:f.home,away:f.away,players,log:[],stats:{}};
+players.forEach(p=>ist(p.id));
+S.sel=players[0]?.id||null;
+S.sH=0;S.sA=0;
+S.modal=null;S.page=‘scout’;
+render();
 }
 function saveMatch(){
-  const idx=S.matches.findIndex(m=>m.id===S.cur.id);
-  const snap=JSON.parse(JSON.stringify(S.cur));
-  if(idx>=0)S.matches[idx]=snap;else S.matches.push(snap);
-  sv('vb_matches',S.matches);
-  alert('Partita salvata!');
+const idx=S.matches.findIndex(m=>m.id===S.cur.id);
+const snap=JSON.parse(JSON.stringify(S.cur));
+if(idx>=0)S.matches[idx]=snap;else S.matches.push(snap);
+sv(‘vb_matches’,S.matches);
+alert(‘Partita salvata!’);
 }
 function loadMatch(i){
-  S.cur=JSON.parse(JSON.stringify(S.matches[i]));
-  S.sel=S.cur.players[0]?.id||null;
-  S.sH=0;S.sA=0;S.page='scout';render();
+S.cur=JSON.parse(JSON.stringify(S.matches[i]));
+S.sel=S.cur.players[0]?.id||null;
+S.sH=0;S.sA=0;S.page=‘scout’;render();
 }
 function delMatch(i,e){
-  e.stopPropagation();
-  if(!confirm('Eliminare?'))return;
-  if(S.matches[i].id===S.cur.id)S.cur=em();
-  S.matches.splice(i,1);sv('vb_matches',S.matches);render();
+e.stopPropagation();
+if(!confirm(‘Eliminare?’))return;
+if(S.matches[i].id===S.cur.id)S.cur=em();
+S.matches.splice(i,1);sv(‘vb_matches’,S.matches);render();
 }
 
 /* log */
 function logAct(pid,ak,q){
-  const sk=ak+QL[q];ist(pid);
-  S.cur.stats[pid][sk]=(S.cur.stats[pid][sk]||0)+1;
-  const p=S.cur.players.find(r=>r.id===pid);
-  S.cur.log.unshift({pid,player:p?.name||'?',ak,sk,q,time:new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})});
-  render();
+const sk=ak+QL[q];ist(pid);
+S.cur.stats[pid][sk]=(S.cur.stats[pid][sk]||0)+1;
+const p=S.cur.players.find(r=>r.id===pid);
+S.cur.log.unshift({pid,player:p?.name||’?’,ak,sk,q,time:new Date().toLocaleTimeString(‘it-IT’,{hour:‘2-digit’,minute:‘2-digit’})});
+render();
 }
 function undo(){
-  if(!S.cur.log.length)return;
-  const it=S.cur.log[0];
-  if(S.cur.stats[it.pid]?.[it.sk]>0)S.cur.stats[it.pid][it.sk]--;
-  S.cur.log.shift();render();
+if(!S.cur.log.length)return;
+const it=S.cur.log[0];
+if(S.cur.stats[it.pid]?.[it.sk]>0)S.cur.stats[it.pid][it.sk]–;
+S.cur.log.shift();render();
 }
 function delLog(i){
-  const it=S.cur.log[i];
-  if(S.cur.stats[it.pid]?.[it.sk]>0)S.cur.stats[it.pid][it.sk]--;
-  S.cur.log.splice(i,1);render();
+const it=S.cur.log[i];
+if(S.cur.stats[it.pid]?.[it.sk]>0)S.cur.stats[it.pid][it.sk]–;
+S.cur.log.splice(i,1);render();
 }
 
 /* roster */
 function createRoster(){
-  const n=document.getElementById('rt-name')?.value?.trim();
-  if(!n){alert('Inserisci il nome');return;}
-  const r={id:Date.now(),teamName:n,players:[]};
-  S.rosters.push(r);S.erid=r.id;sv('vb_rosters',S.rosters);S.modal=null;render();
+const n=document.getElementById(‘rt-name’)?.value?.trim();
+if(!n){alert(‘Inserisci il nome’);return;}
+const r={id:Date.now(),teamName:n,players:[]};
+S.rosters.push(r);S.erid=r.id;sv(‘vb_rosters’,S.rosters);S.modal=null;render();
 }
 function addToRoster(rid){
-  const n=document.getElementById('rf-name')?.value?.trim();
-  const num=document.getElementById('rf-num')?.value?.trim();
-  const role=document.getElementById('rf-role')?.value;
-  if(!n||!num){alert('Inserisci nome e numero');return;}
-  const r=S.rosters.find(r=>r.id===rid);if(!r)return;
-  r.players.push({id:Date.now(),name:n,num,role});
-  sv('vb_rosters',S.rosters);S.modal=null;render();
+const n=document.getElementById(‘rf-name’)?.value?.trim();
+const num=document.getElementById(‘rf-num’)?.value?.trim();
+const role=document.getElementById(‘rf-role’)?.value;
+if(!n||!num){alert(‘Inserisci nome e numero’);return;}
+const r=S.rosters.find(r=>r.id===rid);if(!r)return;
+r.players.push({id:Date.now(),name:n,num,role});
+sv(‘vb_rosters’,S.rosters);S.modal=null;render();
 }
 function remFromRoster(rid,pid){
-  const r=S.rosters.find(r=>r.id===rid);if(!r)return;
-  r.players=r.players.filter(p=>p.id!==pid);sv('vb_rosters',S.rosters);render();
+const r=S.rosters.find(r=>r.id===rid);if(!r)return;
+r.players=r.players.filter(p=>p.id!==pid);sv(‘vb_rosters’,S.rosters);render();
 }
 function delRoster(id,e){
-  e.stopPropagation();
-  if(!confirm('Eliminare rosa?'))return;
-  S.rosters=S.rosters.filter(r=>r.id!==id);
-  if(S.erid===id)S.erid=null;sv('vb_rosters',S.rosters);render();
+e.stopPropagation();
+if(!confirm(‘Eliminare rosa?’))return;
+S.rosters=S.rosters.filter(r=>r.id!==id);
+if(S.erid===id)S.erid=null;sv(‘vb_rosters’,S.rosters);render();
 }
 function addMatchPlayer(){
-  const n=document.getElementById('rf-name')?.value?.trim();
-  const num=document.getElementById('rf-num')?.value?.trim();
-  const role=document.getElementById('rf-role')?.value;
-  if(!n||!num){alert('Inserisci nome e numero');return;}
-  const p={id:Date.now(),name:n,num,role};
-  S.cur.players.push(p);ist(p.id);S.sel=p.id;S.modal=null;render();
+const n=document.getElementById(‘rf-name’)?.value?.trim();
+const num=document.getElementById(‘rf-num’)?.value?.trim();
+const role=document.getElementById(‘rf-role’)?.value;
+if(!n||!num){alert(‘Inserisci nome e numero’);return;}
+const p={id:Date.now(),name:n,num,role};
+S.cur.players.push(p);ist(p.id);S.sel=p.id;S.modal=null;render();
 }
 
 /* export */
 function exportCSV(){
-  const m=S.cur;const a=actPlayers();
-  let csv=`Scout Volley - ${m.home} vs ${m.away}\nData:${m.date}  Luogo:${m.loc}  N.Gara:${m.gnum}\n\n`;
-  const h=['Giocatore','N.','Ruolo'];
-  AK.forEach(k=>{const l=ACTS[k].short;h.push(l+'++',l+'+',l+'–',l+'=','Tot '+l,'%++','%Pos');});
-  csv+=h.join(',')+'\n';
-  a.forEach(p=>{
-    const s=m.stats[p.id]||{};const row=[p.name,p.num,p.role];
-    AK.forEach(k=>{
-      const pp=s[k+'++']||0,pl=s[k+'+']||0,mn=s[k+'–']||0,mm=s[k+'=']||0,tot=pp+pl+mn+mm;
-      row.push(pp,pl,mn,mm,tot,pct(pp,tot)+'%',pct(pp+pl,tot)+'%');
-    });csv+=row.join(',')+'\n';
-  });
-  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv'});
-  const el=document.createElement('a');el.href=URL.createObjectURL(blob);
-  el.download=`scout_${m.home}_${m.away}_${m.date||'data'}.csv`;el.click();
+const m=S.cur;const a=actPlayers();
+let csv=`Scout Volley - ${m.home} vs ${m.away}\nData:${m.date}  Luogo:${m.loc}  N.Gara:${m.gnum}\n\n`;
+const h=[‘Giocatore’,‘N.’,‘Ruolo’];
+AK.forEach(k=>{const l=ACTS[k].short;h.push(l+’++’,l+’+’,l+’–’,l+’=’,‘Tot ‘+l,’%++’,’%Pos’);});
+csv+=h.join(’,’)+’\n’;
+a.forEach(p=>{
+const s=m.stats[p.id]||{};const row=[p.name,p.num,p.role];
+AK.forEach(k=>{
+const pp=s[k+’++’]||0,pl=s[k+’+’]||0,mn=s[k+’–’]||0,mm=s[k+’=’]||0,tot=pp+pl+mn+mm;
+row.push(pp,pl,mn,mm,tot,pct(pp,tot)+’%’,pct(pp+pl,tot)+’%’);
+});csv+=row.join(’,’)+’\n’;
+});
+const blob=new Blob([’\uFEFF’+csv],{type:‘text/csv’});
+const el=document.createElement(‘a’);el.href=URL.createObjectURL(blob);
+el.download=`scout_${m.home}_${m.away}_${m.date||'data'}.csv`;el.click();
 }
 function exportPDF(){
-  const{jsPDF}=window.jspdf;const m=S.cur;const a=actPlayers();
-  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  doc.setFontSize(15);doc.setFont('helvetica','bold');
-  doc.text(`SCOUT — ${m.home} vs ${m.away}`,14,13);
-  doc.setFontSize(9);doc.setFont('helvetica','normal');
-  doc.text(`Data: ${m.date||'—'}   Luogo: ${m.loc||'—'}   N. Gara: ${m.gnum||'—'}`,14,20);
-  const secs=[
-    {label:'ATTACCO', p:'att', c:[21,128,61]},{label:'DIFESA',p:'dif',c:[14,110,184]},
-    {label:'MURO',p:'muro',c:[109,40,217]},{label:'BATTUTA',p:'batt',c:[163,104,10]},
-    {label:'RICEZIONE',p:'rice',c:[180,70,20]},
-  ];
-  let y=26;
-  secs.forEach(sec=>{
-    if(y>170){doc.addPage();y=14;}
-    doc.setFontSize(10);doc.setFont('helvetica','bold');
-    doc.setTextColor(...sec.c);doc.text(sec.label,14,y);doc.setTextColor(0);
-    const rows=a.map(p=>{
-      const s=m.stats[p.id]||{};
-      const pp=s[sec.p+'++']||0,pl=s[sec.p+'+']||0,mn=s[sec.p+'–']||0,mm=s[sec.p+'=']||0,tot=pp+pl+mn+mm;
-      return[p.name,p.num,p.role,pp,pl,mn,mm,tot,pct(pp,tot)+'%',pct(pp+pl,tot)+'%'];
-    });
-    doc.autoTable({head:[['Giocatore','N.','Ruolo','++','+','–','=','Tot','%++','%Pos']],body:rows,startY:y+2,
-      styles:{fontSize:8,cellPadding:1.8},headStyles:{fillColor:sec.c,textColor:255,fontStyle:'bold'},
-      alternateRowStyles:{fillColor:[245,245,255]},
-      columnStyles:{0:{cellWidth:26},1:{cellWidth:8},2:{cellWidth:22}}});
-    y=doc.lastAutoTable.finalY+7;
-  });
-  doc.save(`scout_${m.home}_${m.away}.pdf`);
+const{jsPDF}=window.jspdf;const m=S.cur;const a=actPlayers();
+const doc=new jsPDF({orientation:‘landscape’,unit:‘mm’,format:‘a4’});
+doc.setFontSize(15);doc.setFont(‘helvetica’,‘bold’);
+doc.text(`SCOUT — ${m.home} vs ${m.away}`,14,13);
+doc.setFontSize(9);doc.setFont(‘helvetica’,‘normal’);
+doc.text(`Data: ${m.date||'—'}   Luogo: ${m.loc||'—'}   N. Gara: ${m.gnum||'—'}`,14,20);
+const secs=[
+{label:‘ATTACCO’, p:‘att’, c:[21,128,61]},{label:‘DIFESA’,p:‘dif’,c:[14,110,184]},
+{label:‘MURO’,p:‘muro’,c:[109,40,217]},{label:‘BATTUTA’,p:‘batt’,c:[163,104,10]},
+{label:‘RICEZIONE’,p:‘rice’,c:[180,70,20]},
+];
+let y=26;
+secs.forEach(sec=>{
+if(y>170){doc.addPage();y=14;}
+doc.setFontSize(10);doc.setFont(‘helvetica’,‘bold’);
+doc.setTextColor(…sec.c);doc.text(sec.label,14,y);doc.setTextColor(0);
+const rows=a.map(p=>{
+const s=m.stats[p.id]||{};
+const pp=s[sec.p+’++’]||0,pl=s[sec.p+’+’]||0,mn=s[sec.p+’–’]||0,mm=s[sec.p+’=’]||0,tot=pp+pl+mn+mm;
+return[p.name,p.num,p.role,pp,pl,mn,mm,tot,pct(pp,tot)+’%’,pct(pp+pl,tot)+’%’];
+});
+doc.autoTable({head:[[‘Giocatore’,‘N.’,‘Ruolo’,’++’,’+’,’–’,’=’,‘Tot’,’%++’,’%Pos’]],body:rows,startY:y+2,
+styles:{fontSize:8,cellPadding:1.8},headStyles:{fillColor:sec.c,textColor:255,fontStyle:‘bold’},
+alternateRowStyles:{fillColor:[245,245,255]},
+columnStyles:{0:{cellWidth:26},1:{cellWidth:8},2:{cellWidth:22}}});
+y=doc.lastAutoTable.finalY+7;
+});
+doc.save(`scout_${m.home}_${m.away}.pdf`);
 }
 
 /* ====== RENDER ====== */
-function render(){document.getElementById('app').innerHTML=buildApp();}
+function render(){document.getElementById(‘app’).innerHTML=buildApp();}
 
 function buildApp(){return `
 ${buildTopbar()}
+
 <div style="flex:1;overflow:hidden;display:flex;flex-direction:column">
   ${S.page==='scout' ?buildScout() :''}
   ${S.page==='home'  ?`<div class="page active">${buildHome()}</div>`:''}
@@ -328,7 +331,8 @@ ${S.modal?buildModal():''}
 `;}
 
 function buildTopbar(){
-  if(S.page==='scout'&&S.cur.id) return `
+if(S.page===‘scout’&&S.cur.id) return `
+
 <div class="topbar">
   <div class="score-box">
     <button class="score-btn" onclick="S.sH=Math.max(0,S.sH-1);render()">−</button>
@@ -355,31 +359,34 @@ function buildTopbar(){
 </div>`;}
 
 function buildNav(){
-  const tabs=[
-    {id:'home',  e:'🏠',l:'Partita'},
-    {id:'scout', e:'🏐',l:'Scout'},
-    {id:'stats', e:'📊',l:'Stats'},
-    {id:'recap', e:'📋',l:'Riepilogo'},
-    {id:'roster',e:'👥',l:'Rosa'},
-  ];
-  return `<div class="bottom-nav">${tabs.map(t=>`
+const tabs=[
+{id:‘home’,  e:‘🏠’,l:‘Partita’},
+{id:‘scout’, e:‘🏐’,l:‘Scout’},
+{id:‘stats’, e:‘📊’,l:‘Stats’},
+{id:‘recap’, e:‘📋’,l:‘Riepilogo’},
+{id:‘roster’,e:‘👥’,l:‘Rosa’},
+];
+return `<div class="bottom-nav">${tabs.map(t=>`
+
   <div class="nav-tab${S.page===t.id?' active':''}" onclick="S.page='${t.id}';render()">
     <div class="ni">${t.e}</div>${t.l}
   </div>`).join('')}</div>`;}
 
 /* ====== SCOUT ====== */
 function buildScout(){
-  if(!S.cur.id) return `<div class="page active"><div class="empty">
-    <div style="font-size:48px;margin-bottom:12px">🏐</div>
-    <p style="color:var(--text2);margin-bottom:16px">Nessuna partita attiva</p>
-    <button onclick="S.page='home';render()" style="background:var(--navy3);border-radius:12px;padding:12px 24px;font-size:14px;font-weight:700">Crea una partita →</button>
+if(!S.cur.id) return `<div class="page active"><div class="empty">
+<div style="font-size:48px;margin-bottom:12px">🏐</div>
+<p style="color:var(--text2);margin-bottom:16px">Nessuna partita attiva</p>
+<button onclick="S.page='home';render()" style="background:var(--navy3);border-radius:12px;padding:12px 24px;font-size:14px;font-weight:700">Crea una partita →</button>
+
   </div></div>`;
 
-  const players=S.cur.players;
-  const cols=AK; // att dif muro batt rice
-  const gc=`grid-template-columns:repeat(${cols.length},1fr)`;
+const players=S.cur.players;
+const cols=AK; // att dif muro batt rice
+const gc=`grid-template-columns:repeat(${cols.length},1fr)`;
 
-  return `<div class="page active" style="overflow:hidden">
+return `<div class="page active" style="overflow:hidden">
+
 <div class="match-bar">
   <span>${S.cur.home}</span>
   <span class="sep">vs</span>
@@ -430,6 +437,7 @@ function buildScout(){
 
 /* ====== HOME ====== */
 function buildHome(){return `<div class="form-wrap">
+
   <div class="sec-label">Nuova partita</div>
   <div class="fg"><label>Data</label><input type="date" id="fd" value="${S.mf.date}"></div>
   <div class="r2">
@@ -453,8 +461,8 @@ function buildHome(){return `<div class="form-wrap">
     S.mf.rid=document.getElementById('fr').value;
     startMatch()">▶ Inizia Scout</button>
 
-  ${S.matches.length?`<div class="sec-label" style="margin-top:24px">Partite salvate</div>
-  ${S.matches.map((m,i)=>`
+${S.matches.length?`<div class="sec-label" style="margin-top:24px">Partite salvate</div> ${S.matches.map((m,i)=>`
+
   <div class="match-card">
     <div style="flex:1;cursor:pointer" onclick="loadMatch(${i});S.page='scout';render()">
       <div style="font-weight:700;font-size:14px">${m.home} vs ${m.away}</div>
@@ -465,28 +473,83 @@ function buildHome(){return `<div class="form-wrap">
   </div>`).join('')}`:''}
 </div>`;}
 
+/* ====== JSON IMPORT / EXPORT ====== */
+function dlJSON(obj,filename){
+const blob=new Blob([JSON.stringify(obj,null,2)],{type:‘application/json’});
+const a=document.createElement(‘a’);a.href=URL.createObjectURL(blob);a.download=filename;a.click();
+}
+function tod(){return new Date().toISOString().slice(0,10);}
+
+function exportSingleRoster(rid){
+const r=S.rosters.find(x=>x.id===rid);if(!r)return;
+dlJSON({version:1,exported:new Date().toISOString(),rosters:[r]},
+‘rosa_’+r.teamName.replace(/\s+/g,’*’)+’*’+tod()+’.json’);
+}
+function exportAllJSON(){
+dlJSON({version:1,exported:new Date().toISOString(),rosters:S.rosters,matches:S.matches},
+‘backup_volley_’+tod()+’.json’);
+}
+function exportRostersJSON(){
+dlJSON({version:1,exported:new Date().toISOString(),rosters:S.rosters},
+‘rose_’+tod()+’.json’);
+}
+function exportMatchesJSON(){
+dlJSON({version:1,exported:new Date().toISOString(),matches:S.matches},
+‘partite_’+tod()+’.json’);
+}
+
+function importJSON(ev){
+const file=ev.target.files[0];if(!file)return;
+const reader=new FileReader();
+reader.onload=e=>{
+try{
+const data=JSON.parse(e.target.result);
+if(!data.version)throw new Error(‘Formato non valido’);
+let msg=’’;
+if(data.rosters&&Array.isArray(data.rosters)){
+data.rosters.forEach(r=>{
+const idx=S.rosters.findIndex(x=>x.id===r.id);
+if(idx>=0)S.rosters[idx]=r;else S.rosters.push(r);
+});
+sv(‘vb_rosters’,S.rosters);
+msg+=‘✅ ‘+data.rosters.length+’ rosa/e importata/e\n’;
+}
+if(data.matches&&Array.isArray(data.matches)){
+data.matches.forEach(m=>{
+const idx=S.matches.findIndex(x=>x.id===m.id);
+if(idx>=0)S.matches[idx]=m;else S.matches.push(m);
+});
+sv(‘vb_matches’,S.matches);
+msg+=‘✅ ‘+data.matches.length+’ partita/e importata/e’;
+}
+alert(msg.trim()||‘⚠️ Nessun dato riconosciuto nel file.’);
+S.modal=null;render();
+}catch(err){alert(‘❌ Errore: ‘+err.message);}
+};
+reader.readAsText(file);
+ev.target.value=’’;
+}
+
 /* ====== ROSTER ====== */
 function buildRoster(){
-  const er=S.erid?S.rosters.find(r=>r.id===S.erid):null;
-  if(er) return `<div class="form-wrap">
-    <button onclick="S.erid=null;render()" style="background:var(--bg3);border-radius:10px;padding:8px 13px;font-size:13px;font-weight:700;margin-bottom:14px">← Tutte le rose</button>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <h2 style="font-size:18px;font-weight:800">${er.teamName}</h2>
-      <button class="iBtn ghost" style="font-size:22px" onclick="S.modal='addTR';S.rf={name:'',num:'',role:ROLES[0]};render()">＋</button>
-    </div>
-    ${er.players.length===0?`<div class="empty">Nessun giocatore. Tocca ＋ per aggiungere!</div>`:''}
-    <div class="team-card">
-      ${er.players.map((p,i)=>`
-      <div style="display:flex;align-items:center;gap:10px;padding:10px 13px;${i>0?'border-top:1px solid var(--border)':''}">
-        <div style="width:34px;height:34px;border-radius:10px;background:var(--navy3);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px">${p.num}</div>
-        <div style="flex:1"><div style="font-weight:700;font-size:13px">${p.name}</div><div style="font-size:11px;color:var(--text2)">${p.role}</div></div>
-        <button class="iBtn red" onclick="remFromRoster(${er.id},${p.id})">✕</button>
-      </div>`).join('')}
-    </div>
+const er=S.erid?S.rosters.find(r=>r.id===S.erid):null;
+if(er) return `<div class="form-wrap"> <input type="file" id="json-imp" accept=".json" style="display:none" onchange="importJSON(event)"> <button onclick="S.erid=null;render()" style="background:var(--bg3);border-radius:10px;padding:8px 13px;font-size:13px;font-weight:700;margin-bottom:14px">← Tutte le rose</button> <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"> <h2 style="font-size:18px;font-weight:800">${er.teamName}</h2> <div style="display:flex;gap:6px"> <button class="iBtn ghost" title="Esporta JSON questa rosa" onclick="exportSingleRoster(${er.id})">📤</button> <button class="iBtn ghost" style="font-size:22px" title="Aggiungi giocatore" onclick="S.modal='addTR';S.rf={name:'',num:'',role:ROLES[0]};render()">＋</button> </div> </div> ${er.players.length===0?`<div class="empty">Nessun giocatore. Tocca ＋ per aggiungere!</div>`:''} <div class="team-card"> ${er.players.map((p,i)=>`
+<div style="display:flex;align-items:center;gap:10px;padding:10px 13px;${i>0?'border-top:1px solid var(--border)':''}">
+<div style="width:34px;height:34px;border-radius:10px;background:var(--navy3);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px">${p.num}</div>
+<div style="flex:1"><div style="font-weight:700;font-size:13px">${p.name}</div><div style="font-size:11px;color:var(--text2)">${p.role}</div></div>
+<button class="iBtn red" onclick="remFromRoster(${er.id},${p.id})">✕</button>
+</div>`).join(’’)}
+</div>
+
   </div>`;
 
-  return `<div class="form-wrap">
-  <button class="big-btn" style="margin-bottom:12px" onclick="S.modal='createR';render()">＋ Nuova rosa</button>
+return `<div class="form-wrap">
+<input type="file" id="json-imp" accept=".json" style="display:none" onchange="importJSON(event)">
+
+  <div class="r2" style="margin-bottom:10px">
+    <button class="big-btn primary" onclick="S.modal='createR';render()">＋ Nuova rosa</button>
+    <button class="big-btn" onclick="S.modal='backupModal';render()" style="background:var(--bg4)">📦 Backup</button>
+  </div>
   ${S.rosters.length===0?`<div class="empty">Nessuna rosa. Creane una!</div>`:''}
   ${S.rosters.map(r=>`
   <div class="team-card">
@@ -495,8 +558,9 @@ function buildRoster(){
         <div style="font-weight:800;font-size:15px">${r.teamName}</div>
         <div style="font-size:11px;color:var(--text2);margin-top:1px">${r.players.length} giocatori</div>
       </div>
-      <button class="iBtn ghost" onclick="S.erid=${r.id};render()">✏️</button>
-      <button class="iBtn red" onclick="delRoster(${r.id},event)">🗑</button>
+      <button class="iBtn ghost" title="Esporta JSON" onclick="exportSingleRoster(${r.id})">📤</button>
+      <button class="iBtn ghost" title="Modifica" onclick="S.erid=${r.id};render()">✏️</button>
+      <button class="iBtn red" title="Elimina" onclick="delRoster(${r.id},event)">🗑</button>
     </div>
     ${r.players.length?`<div style="padding:7px 9px;display:flex;flex-wrap:wrap">
       ${r.players.map(p=>`<div class="p-pill"><div class="p-pill-num">${p.num}</div><span style="font-size:12px;font-weight:600">${p.name}</span><span style="font-size:10px;color:var(--text2);margin-left:2px">${p.role}</span></div>`).join('')}
@@ -506,11 +570,12 @@ function buildRoster(){
 
 /* ====== STATS ====== */
 function buildStats(){
-  if(!S.cur.id) return `<div class="empty" style="padding:60px 20px">Nessuna partita attiva</div>`;
-  const a=actPlayers();
-  if(!a.length) return `<div class="empty">Nessun dato ancora.<br>Vai su Scout e inizia!</div>`;
-  const tabs=[{k:'att',label:'Attacco'},{k:'dif',label:'Difesa'},{k:'muro',label:'Muro'},{k:'batt',label:'Battuta'},{k:'rice',label:'Ricezione'}];
-  return `<div>
+if(!S.cur.id) return `<div class="empty" style="padding:60px 20px">Nessuna partita attiva</div>`;
+const a=actPlayers();
+if(!a.length) return `<div class="empty">Nessun dato ancora.<br>Vai su Scout e inizia!</div>`;
+const tabs=[{k:‘att’,label:‘Attacco’},{k:‘dif’,label:‘Difesa’},{k:‘muro’,label:‘Muro’},{k:‘batt’,label:‘Battuta’},{k:‘rice’,label:‘Ricezione’}];
+return `<div>
+
   <div style="display:flex;gap:4px;overflow-x:auto;padding:10px;background:var(--bg2);border-bottom:1px solid var(--border)">
     ${tabs.map(t=>`<button onclick="S.stab='${t.k}';render()" style="flex-shrink:0;padding:6px 13px;border-radius:20px;font-size:12px;font-weight:700;background:${S.stab===t.k?'var(--navy3)':'var(--bg3)'};color:${S.stab===t.k?'var(--gold)':'var(--text2)'}">${t.label}</button>`).join('')}
   </div>
@@ -518,10 +583,11 @@ function buildStats(){
   </div>`;}
 
 function buildStatSec(k,active){
-  const m=S.cur;
-  const hCls={att:'h-att',dif:'h-dif',muro:'h-muro',batt:'h-batt',rice:'h-rice'}[k]||'h-rice';
-  const label=ACTS[k]?.label||k;
-  return `<div class="stat-sec">
+const m=S.cur;
+const hCls={att:‘h-att’,dif:‘h-dif’,muro:‘h-muro’,batt:‘h-batt’,rice:‘h-rice’}[k]||‘h-rice’;
+const label=ACTS[k]?.label||k;
+return `<div class="stat-sec">
+
   <div class="stat-hdr ${hCls}">${label}</div>
   <div style="overflow-x:auto"><table>
     <thead><tr>
@@ -549,16 +615,17 @@ function buildStatSec(k,active){
 
 /* ====== RIEPILOGO ====== */
 function buildRecap(){
-  if(!S.cur.id) return `<div class="empty" style="padding:60px 20px">Nessuna partita attiva</div>`;
-  const a=actPlayers();
-  if(!a.length) return `<div class="empty">Nessun dato ancora</div>`;
-  const m=S.cur;
-  const secs=[
-    {k:'att',label:'Attacco',cls:'h-att'},{k:'dif',label:'Difesa',cls:'h-dif'},
-    {k:'muro',label:'Muro',cls:'h-muro'},{k:'batt',label:'Battuta',cls:'h-batt'},
-    {k:'rice',label:'Ricezione',cls:'h-rice'},
-  ];
-  return `<div style="padding:10px">
+if(!S.cur.id) return `<div class="empty" style="padding:60px 20px">Nessuna partita attiva</div>`;
+const a=actPlayers();
+if(!a.length) return `<div class="empty">Nessun dato ancora</div>`;
+const m=S.cur;
+const secs=[
+{k:‘att’,label:‘Attacco’,cls:‘h-att’},{k:‘dif’,label:‘Difesa’,cls:‘h-dif’},
+{k:‘muro’,label:‘Muro’,cls:‘h-muro’},{k:‘batt’,label:‘Battuta’,cls:‘h-batt’},
+{k:‘rice’,label:‘Ricezione’,cls:‘h-rice’},
+];
+return `<div style="padding:10px">
+
   <div style="text-align:center;padding:6px 0 12px;font-size:13px;color:var(--text2)">${m.home} vs ${m.away} · ${m.date||'—'}</div>
   ${secs.map(sec=>`
   <div class="stat-sec">
@@ -595,7 +662,8 @@ function buildRecap(){
 
 /* ====== MODAL ====== */
 function buildModal(){
-  const pf=`
+const pf=`
+
   <div class="fg"><label>Cognome e Nome</label><input id="rf-name" type="text" placeholder="Es. Rossi Mario" autofocus></div>
   <div class="r2">
     <div class="fg"><label>N. maglia</label><input id="rf-num" type="text" placeholder="7" inputmode="numeric"></div>
@@ -610,11 +678,33 @@ function buildModal(){
   if(S.modal==='addMP') body=`<h2>Aggiungi giocatore</h2>
     <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Solo per questa partita</p>${pf}
     <div class="modal-btns"><button class="big-btn primary" onclick="addMatchPlayer()">Salva</button><button class="big-btn" onclick="S.modal=null;render()">Annulla</button></div>`;
+  if(S.modal==='backupModal') body=`
+    <h2>📦 Backup & Import</h2>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Esporta i tuoi dati in JSON per spostarli su un altro dispositivo, o importa un file precedentemente salvato.</p>
+    <div class="sec-label">Esporta</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+      <button class="big-btn" onclick="exportAllJSON()" style="background:var(--navy3);text-align:left;padding:12px 14px">
+        💾 Backup completo <span style="font-size:11px;color:var(--text2);display:block;margin-top:2px">Rose + Partite in un unico file</span>
+      </button>
+      <button class="big-btn" onclick="exportRostersJSON()" style="background:var(--bg4);text-align:left;padding:12px 14px">
+        👥 Solo rose <span style="font-size:11px;color:var(--text2);display:block;margin-top:2px">Tutte le squadre e i giocatori</span>
+      </button>
+      <button class="big-btn" onclick="exportMatchesJSON()" style="background:var(--bg4);text-align:left;padding:12px 14px">
+        🏐 Solo partite <span style="font-size:11px;color:var(--text2);display:block;margin-top:2px">Tutte le partite con statistiche</span>
+      </button>
+    </div>
+    <div class="sec-label">Importa</div>
+    <button class="big-btn primary" onclick="document.getElementById('json-imp').click()" style="margin-bottom:8px">
+      📂 Seleziona file JSON
+    </button>
+    <p style="font-size:11px;color:var(--text3);text-align:center">I dati esistenti vengono aggiornati, non cancellati</p>
+    <div class="modal-btns" style="margin-top:12px"><button class="big-btn" onclick="S.modal=null;render()">Chiudi</button></div>`;
   return `<div class="overlay" onclick="if(event.target===this){S.modal=null;render()}">
     <div class="modal"><div class="modal-handle"></div>${body}</div>
   </div>`;}
 
 render();
 </script>
+
 </body>
 </html>
