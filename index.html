@@ -5,8 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Volleyball Scout</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<!-- jsPDF loaded on demand at export time -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -26,7 +25,7 @@ input,select{font-family:inherit;color:var(--text);border:1px solid var(--border
 input:focus,select:focus{border-color:var(--navy3)}
 select option{background:var(--bg3)}
 
-.app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
 
 /* TOP BAR */
 .topbar{background:var(–navy2);padding:0 12px;display:flex;align-items:center;gap:8px;height:54px;flex-shrink:0;border-bottom:1px solid var(–border)}
@@ -282,7 +281,19 @@ const blob=new Blob([’\uFEFF’+csv],{type:‘text/csv’});
 const el=document.createElement(‘a’);el.href=URL.createObjectURL(blob);
 el.download=`scout_${m.home}_${m.away}_${m.date||'data'}.csv`;el.click();
 }
-function exportPDF(){
+function loadScript(src){
+return new Promise((resolve,reject)=>{
+if(document.querySelector(‘script[src=”’+src+’”]’)&&window.jspdf){resolve();return;}
+const s=document.createElement(‘script’);s.src=src;
+s.onload=resolve;s.onerror=()=>reject(new Error(‘Failed to load: ‘+src));
+document.head.appendChild(s);
+});
+}
+async function exportPDF(){
+try{
+await loadScript(‘https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js’);
+await loadScript(‘https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js’);
+}catch(e){alert(‘Errore caricamento libreria PDF. Controlla la connessione internet.’);return;}
 const{jsPDF}=window.jspdf;const m=S.cur;const a=actPlayers();
 const doc=new jsPDF({orientation:‘landscape’,unit:‘mm’,format:‘a4’});
 doc.setFontSize(15);doc.setFont(‘helvetica’,‘bold’);
@@ -703,7 +714,13 @@ const pf=`
     <div class="modal"><div class="modal-handle"></div>${body}</div>
   </div>`;}
 
+// Safe init
+try{
 render();
+}catch(e){
+console.error(‘Init error:’,e);
+document.getElementById(‘app’).innerHTML=’<div style="padding:40px;text-align:center;color:#f87171;font-family:sans-serif"><div style="font-size:48px;margin-bottom:16px">⚠️</div><div style="font-size:16px;font-weight:700;margin-bottom:8px">Errore di avvio</div><div style="font-size:13px;color:#8b9bc0">’+e.message+’</div></div>’;
+}
 </script>
 
 </body>
