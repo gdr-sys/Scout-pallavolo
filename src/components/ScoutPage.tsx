@@ -1,9 +1,15 @@
-import { useState, useRef, useEffect } from 'react';
-import { MatchState, Player, Fundamental, Quality, ActionEntry } from '../types';
-import { generateId } from '../store';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { Player, MatchState, Fundamental, Quality, ActionEntry } from '../types';
+import { generateId, getFavoriteActions } from '../store';
 import { useI18n } from '../i18n/context';
+import { useSettings } from '../contexts/SettingsContext';
 import { cn } from '../utils/cn';
-import { Undo2, AlertCircle, ChevronRight } from 'lucide-react';
+import { triggerHaptic } from '../utils/haptic';
+import { Undo2, Plus, Star, Crosshair, RotateCcw, Shield } from 'lucide-react';
+import LiveStatsBar from './LiveStatsBar';
+import TimeoutTracker from './TimeoutTracker';
+import SubstitutionPanel from './SubstitutionPanel';
+import CourtHeatmap from './CourtHeatmap';
 
 interface Props {
   match: MatchState;
@@ -14,10 +20,16 @@ interface Props {
 
 export default function ScoutPage({ match, players, onUpdate, onScoreChange }: Props) {
   const { t } = useI18n();
+  const { advancedMode } = useSettings();
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
+  const [selectedFundamental, setSelectedFundamental] = useState<Fundamental | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [currentRotation, setCurrentRotation] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
+  const [swipeState, setSwipeState] = useState<Record<string, 'left' | 'right' | null>>({});
+  const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const toastTimeout = useRef<number | null>(null);
+  const touchStartX = useRef<Record<string, number>>({});
 
   const FUNDAMENTALS: { key: Fundamental; label: string; emoji: string }[] = [
     { key: 'ATT', label: t.fund_attack, emoji: '⚡' },
@@ -34,6 +46,25 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
     { key: '=', label: '=', color: 'text-red-400', bgColor: 'bg-red-500/15', borderColor: 'border-red-500/30' },
   ];
 
+  // Favorite actions (top 5 most used)
+  const favorites = useMemo(() => {
+    return getFavoriteActions(match.actions, 5);
+  }, [match.actions]);
+
+  // Starters + liberos first, then bench
+  const sortedPlayers = useMemo(() => {
+    const starters = match.starters || [];
+    const liberos = match.liberos || [];
+    const starterPlayers = players.filter(p => starters.includes(p.id));
+    const liberoPlayers = players.filter(p => liberos.includes(p.id));
+    const benchPlayers = players.filter(p => !starters.includes(p.id) && !liberos.includes(p.id));
+    return {
+      starters: starterPlayers.sort((a, b) => a.number - b.number),
+      liberos: liberoPlayers.sort((a, b) => a.number - b.number),
+      bench: benchPlayers.sort((a, b) => a.number - b.number),
+    };
+  }, [players, match.starters, match.liberos]);
+
   useEffect(() => {
     if (logRef.current) {
       logRef.current.scrollLeft = logRef.current.scrollWidth;
@@ -46,7 +77,7 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
     toastTimeout.current = window.setTimeout(() => setToast(null), 2000);
   };
 
-  const handleAction = (fundamental: Fundamental, quality: Quality) => {
+  const handleAction = useCallback((fundamental: Fundamental, quality: Quality, position?: { x: number; y: number }) => {
     if (!selectedPlayer) {
       showToast(t.scout_select_player);
       return;
@@ -54,6 +85,7 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
     const player = players.find((p) => p.id === selectedPlayer);
     if (!player) return;
 
+    const posToUse = position || pendingPosition || undefined;
     const entry: ActionEntry = {
       id: generateId(),
       playerId: player.id,
@@ -63,16 +95,28 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
       quality,
       timestamp: Date.now(),
       set: match.currentSet,
+      ...(advancedMode ? { 
+        rotation: currentRotation,
+        ...(posToUse ? { position: posToUse } : {})
+      } : {}),
     };
+
+    // Haptic feedback
+    triggerHaptic(quality === '++' ? 50 : quality === '=' ? 80 : 30);
 
     onUpdate({
       ...match,
       actions: [...match.actions, entry],
     });
-  };
+
+    // Clear pending position
+    setPendingPosition(null);
+    showToast(`#${player.number} ${fundamental} ${quality}`);
+  }, [selectedPlayer, players, match, advancedMode, currentRotation, pendingPosition, onUpdate, t]);
 
   const handleUndo = () => {
     if (match.actions.length === 0) return;
+    triggerHaptic(40);
     onUpdate({
       ...match,
       actions: match.actions.slice(0, -1),
@@ -81,6 +125,7 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
   };
 
   const handlePointAndError = (type: 'pt' | 'err') => {
+    triggerHaptic(30);
     if (type === 'pt') {
       onScoreChange(match.currentSet - 1, 'home', 1);
     } else {
@@ -89,6 +134,7 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
   };
 
   const handleNewSet = () => {
+    triggerHaptic(60);
     onUpdate({
       ...match,
       scores: [...match.scores, { home: 0, away: 0 }],
@@ -97,76 +143,268 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
     showToast(`${t.scout_set} ${match.currentSet + 1}`);
   };
 
+  // Swipe handling for advanced mode
+  const handleTouchStart = (playerId: string, e: React.TouchEvent) => {
+    if (!advancedMode) return;
+    touchStartX.current[playerId] = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (playerId: string, e: React.TouchEvent) => {
+    if (!advancedMode || !selectedFundamental) return;
+    const startX = touchStartX.current[playerId];
+    if (startX === undefined) return;
+    
+    const endX = e.changedTouches[0].clientX;
+    const diff = endX - startX;
+    
+    if (Math.abs(diff) < 50) return; // threshold
+    
+    // Set this player as selected
+    setSelectedPlayer(playerId);
+    
+    if (diff > 0) {
+      // Swipe right = ++
+      setSwipeState(prev => ({ ...prev, [playerId]: 'right' }));
+      setTimeout(() => {
+        const player = players.find(p => p.id === playerId);
+        if (!player) return;
+        const entry: ActionEntry = {
+          id: generateId(),
+          playerId: player.id,
+          playerName: player.name,
+          playerNumber: player.number,
+          fundamental: selectedFundamental,
+          quality: '++',
+          timestamp: Date.now(),
+          set: match.currentSet,
+          ...(advancedMode ? { rotation: currentRotation } : {}),
+        };
+        triggerHaptic(50);
+        onUpdate({ ...match, actions: [...match.actions, entry] });
+        showToast(`#${player.number} ${selectedFundamental} ++`);
+        setSwipeState(prev => ({ ...prev, [playerId]: null }));
+      }, 300);
+    } else {
+      // Swipe left = =
+      setSwipeState(prev => ({ ...prev, [playerId]: 'left' }));
+      setTimeout(() => {
+        const player = players.find(p => p.id === playerId);
+        if (!player) return;
+        const entry: ActionEntry = {
+          id: generateId(),
+          playerId: player.id,
+          playerName: player.name,
+          playerNumber: player.number,
+          fundamental: selectedFundamental,
+          quality: '=',
+          timestamp: Date.now(),
+          set: match.currentSet,
+          ...(advancedMode ? { rotation: currentRotation } : {}),
+        };
+        triggerHaptic(80);
+        onUpdate({ ...match, actions: [...match.actions, entry] });
+        showToast(`#${player.number} ${selectedFundamental} =`);
+        setSwipeState(prev => ({ ...prev, [playerId]: null }));
+      }, 300);
+    }
+    
+    delete touchStartX.current[playerId];
+  };
+
   if (!match.started) {
     return (
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl bg-surface-700 flex items-center justify-center mx-auto mb-4">
-            <AlertCircle size={28} className="text-muted-dark" />
-          </div>
+          <Crosshair size={48} className="mx-auto mb-3 text-muted-dark opacity-40" />
           <h3 className="text-lg font-bold text-white mb-2">{t.scout_no_match}</h3>
-          <p className="text-sm text-muted max-w-xs mx-auto">
-            {t.scout_no_match_desc}
-          </p>
+          <p className="text-sm text-muted max-w-xs mx-auto">{t.scout_no_match_desc}</p>
         </div>
       </div>
     );
   }
 
+  const renderPlayerButton = (player: Player, type: 'starter' | 'libero' | 'bench') => {
+    const isSelected = selectedPlayer === player.id;
+    const swipe = swipeState[player.id];
+    const isLibero = type === 'libero';
+    const isStarter = type === 'starter';
+    return (
+      <button
+        key={player.id}
+        onClick={() => setSelectedPlayer(player.id)}
+        onTouchStart={(e) => handleTouchStart(player.id, e)}
+        onTouchEnd={(e) => handleTouchEnd(player.id, e)}
+        className={cn(
+          "w-full px-2 py-2 rounded-xl text-left flex items-center gap-2 transition-all",
+          isSelected
+            ? "bg-navy-600/50 border border-navy-500/50"
+            : isLibero 
+              ? "bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20"
+              : "bg-surface-800 border border-surface-600/30 hover:bg-surface-700",
+          swipe === 'right' && 'swipe-right',
+          swipe === 'left' && 'swipe-left'
+        )}
+      >
+        {isStarter && <Star size={8} className="text-gold-400 flex-shrink-0" />}
+        {isLibero && <Shield size={8} className="text-purple-400 flex-shrink-0" />}
+        <span className={cn(
+          "w-7 h-7 rounded-lg flex items-center justify-center text-xs font-extrabold flex-shrink-0",
+          isSelected ? "bg-gold-400/20 text-gold-400" : isLibero ? "bg-purple-500/20 text-purple-400" : "bg-surface-700 text-muted"
+        )}>
+          {player.number}
+        </span>
+        <span className={cn(
+          "text-xs font-bold truncate",
+          isSelected ? "text-white" : "text-muted"
+        )}>
+          {player.name}
+        </span>
+      </button>
+    );
+  };
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Match info bar */}
-      <div className="bg-navy-800 border-b border-surface-500/30 px-3 py-1.5 flex items-center justify-center gap-2 flex-shrink-0">
-        <span className="text-xs font-bold text-white">{match.info.homeTeam}</span>
-        <span className="text-xs text-muted-dark">vs</span>
-        <span className="text-xs font-bold text-white">{match.info.awayTeam}</span>
-        <span className="text-muted-dark">·</span>
-        <span className="text-xs text-gold-400 font-bold">{t.scout_set} {match.currentSet}</span>
-        <button
-          onClick={handleNewSet}
-          className="ml-2 text-[10px] font-bold text-navy-500 bg-navy-600/20 hover:bg-navy-600/40 px-2 py-0.5 rounded-md transition-colors flex items-center gap-0.5"
-        >
-          {t.scout_new_set} <ChevronRight size={10} />
-        </button>
+      <div className="px-3 py-1.5 bg-surface-800/50 border-b border-surface-600/20 flex items-center gap-2 text-[10px] text-muted-dark font-bold flex-shrink-0">
+        <span className="text-white">{match.info.homeTeam}</span>
+        <span>vs</span>
+        <span className="text-white">{match.info.awayTeam}</span>
+        <span>·</span>
+        <span className="text-gold-400">{t.scout_set} {match.currentSet}</span>
+        <div className="ml-auto flex gap-1.5">
+          <button
+            onClick={handleNewSet}
+            className="px-2 py-1 rounded-md bg-surface-700 hover:bg-surface-600 text-muted text-[10px] font-bold transition-colors"
+          >
+            <Plus size={10} className="inline mr-0.5" />
+            {t.scout_new_set}
+          </button>
+        </div>
       </div>
+
+      {/* Live stats bar */}
+      <LiveStatsBar actions={match.actions} />
+
+      {/* Timeout tracker */}
+      <TimeoutTracker match={match} onUpdate={onUpdate} />
+
+      {/* Rotation selector (advanced mode) */}
+      {advancedMode && (
+        <div className="px-3 py-1.5 bg-surface-800/30 border-b border-surface-600/20 flex items-center gap-2 flex-shrink-0">
+          <RotateCcw size={12} className="text-gold-400" />
+          <span className="text-[10px] font-bold text-muted-dark">{t.rotation}:</span>
+          {([1, 2, 3, 4, 5, 6] as const).map(r => (
+            <button
+              key={r}
+              onClick={() => { setCurrentRotation(r); triggerHaptic(15); }}
+              className={cn(
+                "w-6 h-6 rounded-md text-[10px] font-extrabold transition-all",
+                currentRotation === r
+                  ? "bg-gold-400/20 text-gold-400 border border-gold-400/40"
+                  : "bg-surface-700 text-muted hover:text-white"
+              )}
+            >
+              {r}
+            </button>
+          ))}
+          {advancedMode && selectedFundamental && (
+            <span className="ml-auto text-[9px] text-muted-dark italic">
+              {t.swipe_right_positive} · {t.swipe_left_negative}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Favorites bar */}
+      {favorites.length > 0 && (
+        <div className="px-3 py-1.5 bg-surface-800/30 border-b border-surface-600/20 flex items-center gap-1.5 flex-shrink-0 overflow-x-auto">
+          <span className="text-[10px] font-bold text-gold-400/60 flex-shrink-0">⭐</span>
+          {favorites.map((fav) => {
+            const fundInfo = FUNDAMENTALS.find(f => f.key === fav.fundamental);
+            const qualInfo = QUALITIES.find(q => q.key === fav.quality);
+            return (
+              <button
+                key={`${fav.fundamental}_${fav.quality}`}
+                onClick={() => handleAction(fav.fundamental, fav.quality as Quality)}
+                className={cn(
+                  "px-2 py-1 rounded-lg text-[10px] font-bold flex-shrink-0 transition-all border",
+                  qualInfo?.bgColor,
+                  qualInfo?.borderColor,
+                  qualInfo?.color
+                )}
+              >
+                {fundInfo?.emoji} {fav.fundamental} {fav.quality}
+                <span className="text-muted-dark ml-1">({fav.count})</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Main scout body */}
       <div className="flex-1 flex overflow-hidden">
         {/* Player column */}
-        <div className="w-[108px] sm:w-[120px] bg-surface-800 border-r border-surface-600/50 overflow-y-auto flex-shrink-0 p-1.5 flex flex-col gap-1">
-          {players
-            .sort((a, b) => a.number - b.number)
-            .map((player) => {
-              const isSelected = selectedPlayer === player.id;
-              return (
-                <button
-                  key={player.id}
-                  onClick={() => setSelectedPlayer(isSelected ? null : player.id)}
-                  className={cn(
-                    "w-full rounded-xl px-2 h-11 flex items-center gap-2 transition-all text-left flex-shrink-0",
-                    isSelected
-                      ? "bg-gold-400 text-navy-800"
-                      : "bg-navy-700/60 hover:bg-navy-700 text-white"
-                  )}
-                >
-                  <span className={cn(
-                    "w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-extrabold flex-shrink-0",
-                    isSelected ? "bg-black/15 text-navy-800" : "bg-white/10 text-white"
-                  )}>
-                    {player.number}
-                  </span>
-                  <span className="text-[11px] font-bold truncate">{player.name}</span>
-                </button>
-              );
-            })}
+        <div className="w-[120px] flex-shrink-0 overflow-y-auto p-1.5 space-y-1 border-r border-surface-600/20">
+          {/* Starters section */}
+          {sortedPlayers.starters.length > 0 && (
+            <>
+              <div className="text-[9px] font-bold text-gold-400/60 uppercase tracking-wider px-1 py-0.5">
+                {t.starters}
+              </div>
+              {sortedPlayers.starters.map((player) => renderPlayerButton(player, 'starter'))}
+            </>
+          )}
+          {/* Liberos section */}
+          {sortedPlayers.liberos.length > 0 && (
+            <>
+              <div className="text-[9px] font-bold text-purple-400/60 uppercase tracking-wider px-1 py-0.5 mt-1">
+                {t.liberos}
+              </div>
+              {sortedPlayers.liberos.map((player) => renderPlayerButton(player, 'libero'))}
+            </>
+          )}
+          {/* Bench */}
+          {sortedPlayers.bench.length > 0 && (sortedPlayers.starters.length > 0 || sortedPlayers.liberos.length > 0) && (
+            <>
+              <div className="border-t border-surface-600/30 my-1" />
+              <div className="text-[9px] font-bold text-muted-dark uppercase tracking-wider px-1 py-0.5">
+                {t.starters_bench}
+              </div>
+            </>
+          )}
+          {sortedPlayers.bench.map((player) => renderPlayerButton(player, 'bench'))}
+          {sortedPlayers.starters.length === 0 && sortedPlayers.liberos.length === 0 && sortedPlayers.bench.length === 0 && (
+            players.sort((a, b) => a.number - b.number).map((player) => renderPlayerButton(player, 'bench'))
+          )}
         </div>
 
         {/* Actions grid */}
-        <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1.5">
+        <div className="flex-1 overflow-y-auto p-2">
+          {/* Fundamental tabs for quick select (advanced mode swipe) */}
+          {advancedMode && (
+            <div className="flex gap-1 mb-2">
+              {FUNDAMENTALS.map(f => (
+                <button
+                  key={f.key}
+                  onClick={() => setSelectedFundamental(selectedFundamental === f.key ? null : f.key)}
+                  className={cn(
+                    "flex-1 px-1 py-1.5 rounded-lg text-[10px] font-bold transition-all",
+                    selectedFundamental === f.key
+                      ? "bg-navy-600/50 text-white border border-navy-500/50"
+                      : "bg-surface-800 text-muted-dark hover:text-muted"
+                  )}
+                >
+                  {f.emoji} {f.key}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Column headers */}
-          <div className="grid grid-cols-4 gap-1.5 flex-shrink-0">
+          <div className="grid grid-cols-4 gap-1.5 mb-1.5">
             {QUALITIES.map((q) => (
-              <div key={q.key} className={cn("text-center text-[10px] font-extrabold tracking-wider py-1 rounded-lg", q.color, q.bgColor)}>
+              <div key={q.key} className={cn("text-center text-[10px] font-extrabold py-1 rounded-lg", q.color)}>
                 {q.label}
               </div>
             ))}
@@ -174,10 +412,10 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
 
           {/* Fundamental rows */}
           {FUNDAMENTALS.map((fund) => (
-            <div key={fund.key} className="flex-shrink-0">
-              <div className="text-[10px] font-bold text-muted-dark tracking-wider px-1 mb-0.5 flex items-center gap-1">
-                <span>{fund.emoji}</span>
-                <span>{fund.label.toUpperCase()}</span>
+            <div key={fund.key} className="mb-2 animate-fade-in">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-xs">{fund.emoji}</span>
+                <span className="text-[10px] font-bold text-muted uppercase tracking-wider">{fund.label.toUpperCase()}</span>
               </div>
               <div className="grid grid-cols-4 gap-1.5">
                 {QUALITIES.map((q) => (
@@ -185,9 +423,9 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
                     key={q.key}
                     onClick={() => handleAction(fund.key, q.key)}
                     className={cn(
-                      "h-[52px] rounded-xl flex items-center justify-center text-xl font-black border-2 transition-all active:scale-90",
-                      q.bgColor, q.color, q.borderColor,
-                      !selectedPlayer && "opacity-40"
+                      "py-3.5 rounded-xl font-extrabold text-sm transition-all border",
+                      q.bgColor, q.borderColor, q.color,
+                      "hover:opacity-80 active:scale-90"
                     )}
                   >
                     {q.label}
@@ -198,60 +436,92 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
           ))}
 
           {/* Point / Error row */}
-          <div className="grid grid-cols-2 gap-1.5 mt-1 flex-shrink-0">
+          <div className="grid grid-cols-2 gap-2 mt-3">
             <button
               onClick={() => handlePointAndError('pt')}
-              className="h-10 rounded-xl bg-navy-600/50 border border-navy-600/50 text-gold-400 font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+              className="py-3 rounded-xl bg-green-500/15 border border-green-500/30 text-green-400 font-extrabold text-xs"
             >
-              🏆 {t.scout_point_home}
+              {t.scout_point_home}
             </button>
             <button
               onClick={() => handlePointAndError('err')}
-              className="h-10 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+              className="py-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 font-extrabold text-xs"
             >
-              ❌ {t.scout_point_away}
+              {t.scout_point_away}
             </button>
           </div>
+
+          {/* Substitution Panel */}
+          <div className="mt-3">
+            <SubstitutionPanel match={match} players={players} onUpdate={onUpdate} />
+          </div>
+
+          {/* Court Heatmap (advanced mode) */}
+          {advancedMode && (
+            <div className="mt-3">
+              <CourtHeatmap 
+                actions={match.actions} 
+                selectedFundamental={selectedFundamental}
+                interactive={!!selectedPlayer}
+                onCourtTap={(pos) => {
+                  setPendingPosition(pos);
+                  triggerHaptic(20);
+                  showToast(`📍 ${pos.x}, ${pos.y}`);
+                }}
+              />
+              {pendingPosition && (
+                <p className="text-[10px] text-gold-400 mt-1 text-center">
+                  📍 Posizione selezionata: ({pendingPosition.x}, {pendingPosition.y})
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Log strip */}
-      <div
-        ref={logRef}
-        className="bg-surface-800 border-t border-surface-600/50 overflow-x-auto whitespace-nowrap px-2 py-1.5 flex items-center gap-1.5 flex-shrink-0 h-9"
-      >
+      {/* Log strip + Undo */}
+      <div className="flex-shrink-0 border-t border-surface-600/20 bg-surface-800/50 px-2 py-2 flex items-center gap-2">
         <button
           onClick={handleUndo}
-          className="flex-shrink-0 w-7 h-7 rounded-lg bg-navy-600/50 flex items-center justify-center text-muted hover:text-white hover:bg-navy-600 transition-colors"
+          disabled={match.actions.length === 0}
+          className={cn(
+            "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors",
+            match.actions.length > 0
+              ? "bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20"
+              : "bg-surface-700 text-muted-dark"
+          )}
+          title="Undo"
         >
-          <Undo2 size={14} />
+          <Undo2 size={16} />
         </button>
-        <div className="w-px h-5 bg-surface-600/50 flex-shrink-0" />
-        {match.actions.slice(-20).map((action) => {
-          const qColor = action.quality === '++' ? 'text-green-400' :
-            action.quality === '+' ? 'text-blue-400' :
-            action.quality === '-' ? 'text-yellow-400' : 'text-red-400';
-          return (
-            <span
-              key={action.id}
-              className="inline-flex items-center gap-1 bg-surface-700/70 rounded-full px-2 py-0.5 text-[10px] flex-shrink-0"
-            >
-              <span className="font-bold text-white">{action.playerNumber}</span>
-              <span className="text-muted-dark">{action.fundamental}</span>
-              <span className={cn("font-extrabold", qColor)}>{action.quality}</span>
-            </span>
-          );
-        })}
-        {match.actions.length === 0 && (
-          <span className="text-[10px] text-muted-dark italic">{t.scout_no_actions}</span>
-        )}
+        <div
+          ref={logRef}
+          className="flex-1 flex gap-1 overflow-x-auto"
+        >
+          {match.actions.slice(-20).map((action) => {
+            const qColor = action.quality === '++' ? 'text-green-400' :
+              action.quality === '+' ? 'text-blue-400' :
+              action.quality === '-' ? 'text-yellow-400' : 'text-red-400';
+            return (
+              <div
+                key={action.id}
+                className="flex-shrink-0 flex items-center gap-0.5 px-1.5 py-1 bg-surface-700/50 rounded-md text-[9px] animate-slide-in"
+              >
+                <span className="font-bold text-white">{action.playerNumber}</span>
+                <span className="text-muted-dark">{action.fundamental}</span>
+                <span className={cn("font-extrabold", qColor)}>{action.quality}</span>
+              </div>
+            );
+          })}
+          {match.actions.length === 0 && (
+            <span className="text-[10px] text-muted-dark italic py-1">{t.scout_no_actions}</span>
+          )}
+        </div>
       </div>
 
       {/* Toast */}
       {toast && (
-        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-surface-700 border border-surface-500 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xl z-50"
-          style={{ animation: 'toastIn 0.2s ease-out' }}
-        >
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 bg-surface-700 border border-surface-500 rounded-xl text-sm font-bold text-white shadow-2xl z-50 animate-fade-in">
           {toast}
         </div>
       )}

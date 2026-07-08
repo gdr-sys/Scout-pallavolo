@@ -3,6 +3,7 @@ export interface Player {
   name: string;
   number: number;
   role: PlayerRole;
+  isStarter?: boolean; // titolare
 }
 
 export type PlayerRole = 'Palleggiatore' | 'Opposto' | 'Schiacciatore' | 'Centrale' | 'Libero';
@@ -27,6 +28,9 @@ export interface ActionEntry {
   quality: Quality;
   timestamp: number;
   set: number;
+  // Advanced mode fields (optional)
+  position?: { x: number; y: number };
+  rotation?: 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 export interface MatchInfo {
@@ -42,12 +46,35 @@ export interface SetScore {
   away: number;
 }
 
+export interface Substitution {
+  id: string;
+  timestamp: number;
+  set: number;
+  playerOut: string; // player ID
+  playerIn: string;  // player ID
+  playerOutNumber: number;
+  playerInNumber: number;
+  playerOutName: string;
+  playerInName: string;
+}
+
+export interface TimeoutRecord {
+  id: string;
+  timestamp: number;
+  set: number;
+  team: 'home' | 'away';
+}
+
 export interface MatchState {
   info: MatchInfo;
   actions: ActionEntry[];
   scores: SetScore[];
   currentSet: number;
   started: boolean;
+  starters?: string[];      // player IDs of 6 starters (non-liberos)
+  liberos?: string[];       // player IDs of 1-2 liberos
+  substitutions?: Substitution[];
+  timeouts?: TimeoutRecord[];
 }
 
 export type TabId = 'scout' | 'home' | 'stats' | 'roster' | 'summary';
@@ -75,4 +102,15 @@ export interface PlayerStats {
     eq: number;
     total: number;
   };
+}
+
+export interface FavoriteAction {
+  fundamental: Fundamental;
+  quality: Quality;
+  count: number;
+}
+
+export interface AppSettings {
+  advancedMode: boolean;
+  language: string;
 }

@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { PlayerStats, MatchState, Fundamental } from './types';
+import { PlayerStats, MatchState, Fundamental, Player } from './types';
 
 const FUND_LABELS: Record<Fundamental, string> = {
   ATT: 'Attacco',
@@ -47,7 +47,6 @@ export function exportPDF(stats: PlayerStats[], match: MatchState) {
   const doc = new jsPDF({ orientation: 'landscape' });
   const fundamentals: Fundamental[] = ['ATT', 'DIF', 'MUR', 'BAT', 'RIC'];
 
-  // Title
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
   doc.text('Report Partita', 14, 15);
@@ -58,13 +57,12 @@ export function exportPDF(stats: PlayerStats[], match: MatchState) {
 
   const scoreText = match.scores
     .map((s, i) => `Set ${i + 1}: ${s.home}-${s.away}`)
-    .join('  |  ');
+    .join(' | ');
   doc.text(scoreText, 14, 30);
 
   if (match.info.date) doc.text(`Data: ${match.info.date}`, 14, 37);
   if (match.info.location) doc.text(`Luogo: ${match.info.location}`, 100, 37);
 
-  // Stats tables per fundamental
   let startY = 45;
 
   fundamentals.forEach((fund) => {
@@ -93,14 +91,12 @@ export function exportPDF(stats: PlayerStats[], match: MatchState) {
     });
 
     startY = (doc as any).lastAutoTable.finalY + 10;
-
     if (startY > 170) {
       doc.addPage();
       startY = 15;
     }
   });
 
-  // General totals
   doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
   doc.text('Riepilogo Generale', 14, startY);
@@ -121,4 +117,128 @@ export function exportPDF(stats: PlayerStats[], match: MatchState) {
   });
 
   doc.save(`scout_${match.info.homeTeam}_vs_${match.info.awayTeam}_${match.info.date || 'match'}.pdf`);
+}
+
+// WhatsApp-friendly plain text export
+export function generateWhatsAppText(stats: PlayerStats[], match: MatchState): string {
+  const lines: string[] = [];
+  
+  lines.push(`🏐 *${match.info.homeTeam} vs ${match.info.awayTeam}*`);
+  if (match.info.date) lines.push(`📅 ${match.info.date}`);
+  if (match.info.location) lines.push(`📍 ${match.info.location}`);
+  lines.push('');
+  
+  // Scores
+  lines.push('*📊 Punteggi:*');
+  match.scores.forEach((s, i) => {
+    lines.push(`  Set ${i + 1}: ${s.home} - ${s.away}`);
+  });
+  lines.push('');
+
+  // Key stats per player
+  const fundamentals: Fundamental[] = ['ATT', 'RIC', 'BAT', 'MUR', 'DIF'];
+  const fundEmoji: Record<Fundamental, string> = { ATT: '⚡', RIC: '🛡️', BAT: '🏐', MUR: '🧱', DIF: '🤸' };
+  
+  const activePlayers = stats.filter(s => s.totals.total > 0).sort((a, b) => b.totals.total - a.totals.total);
+  
+  if (activePlayers.length > 0) {
+    lines.push('*📈 Statistiche Chiave:*');
+    lines.push('');
+    
+    for (const s of activePlayers) {
+      lines.push(`*#${s.playerNumber} ${s.playerName}* (${s.totals.total} azioni)`);
+      
+      for (const f of fundamentals) {
+        const fs = s.fundamentals[f];
+        if (fs.total === 0) continue;
+        lines.push(`  ${fundEmoji[f]} ${f}: *Eff ${fs.efficiency}%* | *Pos ${fs.positivity}%* (${fs.total})`);
+      }
+      lines.push('');
+    }
+  }
+
+  // MVP
+  const mvp = stats.reduce((best, s) => (s.totals.pp > (best?.totals.pp || 0) ? s : best), stats[0]);
+  if (mvp && mvp.totals.pp > 0) {
+    lines.push(`⭐ *MVP:* #${mvp.playerNumber} ${mvp.playerName} (${mvp.totals.pp}++ su ${mvp.totals.total})`);
+  }
+
+  return lines.join('\n');
+}
+
+// DataVolley export (.dvw format)
+export function exportToDataVolley(match: MatchState, players: Player[]): string {
+  const lines: string[] = [];
+  
+  // Header section
+  lines.push('[3SCOUT]');
+  lines.push(`[3SET]`);
+  lines.push(`[3MATCH]`);
+  lines.push(`Match Date: ${match.info.date || new Date().toISOString().split('T')[0]}`);
+  lines.push(`Home: ${match.info.homeTeam}`);
+  lines.push(`Away: ${match.info.awayTeam}`);
+  lines.push(`Location: ${match.info.location || ''}`);
+  lines.push('');
+  
+  // Score section
+  lines.push('[3SCORE]');
+  match.scores.forEach((s, i) => {
+    lines.push(`Set ${i + 1};${s.home};${s.away}`);
+  });
+  lines.push('');
+  
+  // Players section
+  lines.push('[3PLAYERS-H]');
+  players.forEach(p => {
+    const roleCode = getRoleCode(p.role);
+    lines.push(`${p.number};${p.name};${roleCode}`);
+  });
+  lines.push('');
+  
+  // Actions section - DataVolley-like format
+  // Format: Set;HomeScore;AwayScore;Team;PlayerNumber;Skill;Type;Result;Position;Rotation
+  lines.push('[3SCOUT]');
+  
+  const fundMap: Record<string, string> = {
+    'ATT': 'A', 'RIC': 'R', 'BAT': 'S', 'MUR': 'B', 'DIF': 'D'
+  };
+  
+  const qualityMap: Record<string, string> = {
+    '++': '#', '+': '+', '-': '/', '=': '='
+  };
+  
+  for (const action of match.actions) {
+    const skillCode = fundMap[action.fundamental] || 'X';
+    const evalCode = qualityMap[action.quality] || '!';
+    const posStr = action.position ? `${action.position.x},${action.position.y}` : '';
+    const rotStr = action.rotation ? `R${action.rotation}` : '';
+    
+    lines.push(
+      `${action.set};*;*;*;` +
+      `${action.playerNumber};${skillCode};H;${evalCode};` +
+      `${posStr};${rotStr};${action.timestamp}`
+    );
+  }
+  
+  return lines.join('\n');
+}
+
+function getRoleCode(role: string): string {
+  switch (role) {
+    case 'Palleggiatore': return 'S';
+    case 'Opposto': return 'O';
+    case 'Schiacciatore': return 'R';
+    case 'Centrale': return 'M';
+    case 'Libero': return 'L';
+    default: return 'U';
+  }
+}
+
+export function downloadDataVolley(match: MatchState, players: Player[]) {
+  const content = exportToDataVolley(match, players);
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `scout_${match.info.homeTeam}_vs_${match.info.awayTeam}_${match.info.date || 'match'}.dvw`;
+  link.click();
 }

@@ -6,7 +6,6 @@ import {
   createDefaultMatch, calculatePlayerStats,
 } from './store';
 import { useI18n } from './i18n/context';
-import { useAuth } from './firebase/context';
 import { cn } from './utils/cn';
 import HomePage from './components/HomePage';
 import ScoutPage from './components/ScoutPage';
@@ -14,32 +13,16 @@ import StatsPage from './components/StatsPage';
 import RosterPage from './components/RosterPage';
 import SummaryPage from './components/SummaryPage';
 import SettingsModal from './components/SettingsModal';
-import { Home, Crosshair, BarChart3, Users, FileText, Minus, Plus, Settings, Cloud } from 'lucide-react';
+import { Home, Crosshair, BarChart3, Users, FileText, Minus, Plus, Settings } from 'lucide-react';
 
 export default function App() {
   const { t } = useI18n();
-  const { user, cloudRosters, cloudMatch, saveRostersToCloud, saveMatchToCloud, isSyncing, isConfigured } = useAuth();
-  
+
   const [activeTab, setActiveTab] = useState<TabId>('home');
   const [rosters, setRosters] = useState<Roster[]>(() => loadRosters());
   const [match, setMatch] = useState<MatchState>(() => loadMatch() || createDefaultMatch());
   const [scorePulse, setScorePulse] = useState<'home' | 'away' | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-
-  // Sync rosters from cloud when user logs in
-  useEffect(() => {
-    if (user && cloudRosters.length > 0) {
-      // Merge: prefer cloud data
-      setRosters(cloudRosters);
-    }
-  }, [user, cloudRosters]);
-
-  // Sync match from cloud when user logs in
-  useEffect(() => {
-    if (user && cloudMatch) {
-      setMatch(cloudMatch);
-    }
-  }, [user, cloudMatch]);
 
   // Persist rosters locally
   useEffect(() => {
@@ -64,28 +47,16 @@ export default function App() {
 
   const handleSaveRosters = useCallback((updated: Roster[]) => {
     setRosters(updated);
-    // Sync to cloud if logged in
-    if (user && !user.isAnonymous) {
-      saveRostersToCloud(updated);
-    }
-  }, [user, saveRostersToCloud]);
+  }, []);
 
   const handleStartMatch = useCallback((updated: MatchState) => {
     setMatch(updated);
     setActiveTab('scout');
-    // Sync to cloud
-    if (user && !user.isAnonymous) {
-      saveMatchToCloud(updated);
-    }
-  }, [user, saveMatchToCloud]);
+  }, []);
 
   const handleUpdateMatch = useCallback((updated: MatchState) => {
     setMatch(updated);
-    // Sync to cloud (debounced in real app, but for now direct)
-    if (user && !user.isAnonymous) {
-      saveMatchToCloud(updated);
-    }
-  }, [user, saveMatchToCloud]);
+  }, []);
 
   const handleScoreChange = useCallback((setIdx: number, team: 'home' | 'away', delta: number) => {
     setMatch((prev) => {
@@ -94,27 +65,18 @@ export default function App() {
       const score = { ...newScores[setIdx] };
       score[team] = Math.max(0, score[team] + delta);
       newScores[setIdx] = score;
-      const updated = { ...prev, scores: newScores };
-      // Sync to cloud
-      if (user && !user.isAnonymous) {
-        saveMatchToCloud(updated);
-      }
-      return updated;
+      return { ...prev, scores: newScores };
     });
     setScorePulse(team);
     setTimeout(() => setScorePulse(null), 300);
-  }, [user, saveMatchToCloud]);
+  }, []);
 
   const handleResetMatch = useCallback(() => {
     const newMatch = createDefaultMatch();
     clearMatch();
     setMatch(newMatch);
     setActiveTab('home');
-    // Sync to cloud
-    if (user && !user.isAnonymous) {
-      saveMatchToCloud(newMatch);
-    }
-  }, [user, saveMatchToCloud]);
+  }, []);
 
   const currentScore = match.scores[match.currentSet - 1] || { home: 0, away: 0 };
 
@@ -151,16 +113,18 @@ export default function App() {
                 onClick={() => handleScoreChange(match.currentSet - 1, 'home', 1)}
                 className="w-7 h-7 rounded-lg bg-navy-600/50 hover:bg-navy-600 flex items-center justify-center transition-colors"
               >
-                <Plus size={14} className="text-white" />
+                <Plus size={14} className="text-gold-400" />
               </button>
             </div>
 
             {/* Center: Set indicator */}
-            <div className="flex-1 text-center">
-              <p className="text-[10px] text-muted-dark font-bold uppercase tracking-wider">{t.scout_set} {match.currentSet}</p>
-              <h1 className="text-xs font-extrabold tracking-wide leading-none">
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <span className="text-[10px] font-bold text-muted-dark uppercase tracking-wider">
+                {t.scout_set} {match.currentSet}
+              </span>
+              <span className="text-xs font-extrabold text-white">
                 🏐 SCOUT
-              </h1>
+              </span>
             </div>
 
             {/* Score - Away */}
@@ -181,38 +145,38 @@ export default function App() {
                 onClick={() => handleScoreChange(match.currentSet - 1, 'away', 1)}
                 className="w-7 h-7 rounded-lg bg-navy-600/50 hover:bg-navy-600 flex items-center justify-center transition-colors"
               >
-                <Plus size={14} className="text-white" />
+                <Plus size={14} className="text-gold-400" />
               </button>
               <span className="text-[10px] font-bold text-muted uppercase tracking-wider hidden sm:block ml-1">{match.info.awayTeam}</span>
             </div>
           </>
         ) : (
-          /* No match: show title centered */
           <>
-            <div className="flex-1 text-center">
-              <h1 className="text-base font-extrabold tracking-wide">
-                🏐 <span className="hidden sm:inline">VOLLEYBALL </span>SCOUT
-              </h1>
+            <div className="flex-1 flex items-center justify-center">
+              <span className="text-base font-extrabold tracking-wider text-white">
+                🏐 VOLLEYBALL SCOUT
+              </span>
             </div>
-            {/* Settings button */}
             <button
               onClick={() => setSettingsOpen(true)}
-              className="w-9 h-9 rounded-xl bg-navy-600/50 hover:bg-navy-600 flex items-center justify-center transition-colors relative"
+              className="w-9 h-9 rounded-xl bg-navy-600/30 hover:bg-navy-600/50 flex items-center justify-center transition-colors"
             >
               <Settings size={18} className="text-muted" />
-              {user && !user.isAnonymous && isConfigured && (
-                <Cloud size={10} className={cn(
-                  "absolute -top-0.5 -right-0.5 text-green-400",
-                  isSyncing && "animate-pulse"
-                )} />
-              )}
             </button>
           </>
         )}
+        {match.started && (
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="w-8 h-8 rounded-lg bg-navy-600/30 hover:bg-navy-600/50 flex items-center justify-center transition-colors ml-1"
+          >
+            <Settings size={14} className="text-muted" />
+          </button>
+        )}
       </div>
 
-      {/* Page content */}
-      <div className="flex-1 overflow-hidden flex flex-col relative">
+      {/* Page Content */}
+      <div className="flex-1 flex overflow-hidden">
         {activeTab === 'home' && (
           <HomePage match={match} rosters={rosters} onStartMatch={handleStartMatch} />
         )}
@@ -235,8 +199,8 @@ export default function App() {
         )}
       </div>
 
-      {/* Bottom Navigation */}
-      <nav className="bg-navy-800 border-t border-surface-500/30 flex h-[56px] flex-shrink-0">
+      {/* Bottom Tab Bar */}
+      <div className="bg-navy-800 border-t border-surface-500/30 flex items-stretch h-[56px] flex-shrink-0">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -245,19 +209,26 @@ export default function App() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex-1 flex flex-col items-center justify-center gap-0.5 transition-all relative",
-                isActive ? "text-gold-400" : "text-muted-dark hover:text-muted"
+                "flex-1 flex flex-col items-center justify-center gap-0.5 transition-all",
+                isActive
+                  ? "text-gold-400"
+                  : "text-muted-dark hover:text-muted"
               )}
             >
-              <Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
-              <span className="text-[10px] font-bold tracking-wide">{tab.label}</span>
+              <Icon size={18} className={isActive ? "drop-shadow-[0_0_6px_rgba(245,200,66,0.4)]" : ""} />
+              <span className={cn(
+                "text-[9px] font-bold uppercase tracking-wider",
+                isActive && "text-gold-400"
+              )}>
+                {tab.label}
+              </span>
               {isActive && (
-                <div className="absolute bottom-0 w-8 h-0.5 bg-gold-400 rounded-t-full" />
+                <div className="absolute bottom-0 w-8 h-0.5 rounded-full bg-gold-400" />
               )}
             </button>
           );
         })}
-      </nav>
+      </div>
 
       {/* Settings Modal */}
       <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />

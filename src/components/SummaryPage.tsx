@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { PlayerStats, MatchState, Player } from '../types';
-import { exportCSV, exportPDF } from '../exportUtils';
+import { exportCSV, exportPDF, generateWhatsAppText, downloadDataVolley } from '../exportUtils';
 import { useI18n } from '../i18n/context';
+import { useSettings } from '../contexts/SettingsContext';
 import { cn } from '../utils/cn';
-import { FileText, Download, FileSpreadsheet, RotateCcw, Trophy, Clock, Zap } from 'lucide-react';
+import { FileText, Download, FileSpreadsheet, RotateCcw, Trophy, Clock, Zap, MessageCircle, Database, Check } from 'lucide-react';
+import CourtHeatmap from './CourtHeatmap';
 
 interface Props {
   stats: PlayerStats[];
@@ -13,6 +16,8 @@ interface Props {
 
 export default function SummaryPage({ stats, match, players, onResetMatch }: Props) {
   const { t } = useI18n();
+  const { advancedMode } = useSettings();
+  const [copied, setCopied] = useState(false);
 
   if (!match.started) {
     return (
@@ -20,9 +25,7 @@ export default function SummaryPage({ stats, match, players, onResetMatch }: Pro
         <div className="text-center">
           <FileText size={48} className="mx-auto mb-3 text-muted-dark opacity-40" />
           <h3 className="text-lg font-bold text-white mb-2">{t.summary_no_match}</h3>
-          <p className="text-sm text-muted max-w-xs mx-auto">
-            {t.summary_no_match_desc}
-          </p>
+          <p className="text-sm text-muted max-w-xs mx-auto">{t.summary_no_match_desc}</p>
         </div>
       </div>
     );
@@ -30,11 +33,8 @@ export default function SummaryPage({ stats, match, players, onResetMatch }: Pro
 
   const totalActions = match.actions.length;
   const setsPlayed = match.scores.length;
-
-  // MVP calculation (most ++ actions)
   const mvp = stats.reduce((best, s) => (s.totals.pp > (best?.totals.pp || 0) ? s : best), stats[0]);
 
-  // Team totals
   const teamTotals = stats.reduce(
     (acc, s) => ({
       pp: acc.pp + s.totals.pp,
@@ -45,6 +45,25 @@ export default function SummaryPage({ stats, match, players, onResetMatch }: Pro
     }),
     { pp: 0, p: 0, m: 0, eq: 0, total: 0 }
   );
+
+  const handleWhatsAppCopy = async () => {
+    const text = generateWhatsAppText(stats, match);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   return (
     <div className="flex-1 overflow-y-auto p-4 pb-8">
@@ -77,7 +96,6 @@ export default function SummaryPage({ stats, match, players, onResetMatch }: Pro
             </div>
           </div>
 
-          {/* Quick stats */}
           <div className="grid grid-cols-3 gap-2">
             <QuickStat icon={<Zap size={14} />} label={t.summary_actions} value={totalActions} />
             <QuickStat icon={<Clock size={14} />} label={t.summary_sets} value={setsPlayed} />
@@ -133,6 +151,7 @@ export default function SummaryPage({ stats, match, players, onResetMatch }: Pro
         {/* Export buttons */}
         <div className="space-y-2 mb-6">
           <p className="text-[10px] uppercase tracking-wider text-muted-dark font-bold mb-2">{t.summary_export}</p>
+          
           <button
             onClick={() => exportPDF(stats, match)}
             className="w-full bg-navy-600 hover:bg-navy-500 text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2.5 transition-colors"
@@ -140,6 +159,7 @@ export default function SummaryPage({ stats, match, players, onResetMatch }: Pro
             <Download size={18} />
             {t.summary_download_pdf}
           </button>
+          
           <button
             onClick={() => exportCSV(stats, match)}
             className="w-full bg-surface-700 hover:bg-surface-600 border border-surface-500 text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2.5 transition-colors"
@@ -147,7 +167,42 @@ export default function SummaryPage({ stats, match, players, onResetMatch }: Pro
             <FileSpreadsheet size={18} />
             {t.summary_download_csv}
           </button>
+
+          {/* WhatsApp export */}
+          <button
+            onClick={handleWhatsAppCopy}
+            className={cn(
+              "w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2.5 transition-colors",
+              copied
+                ? "bg-green-500/20 border border-green-500/30 text-green-400"
+                : "bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 text-green-400"
+            )}
+          >
+            {copied ? <Check size={18} /> : <MessageCircle size={18} />}
+            {copied ? t.copied : t.export_whatsapp}
+          </button>
+
+          {/* DataVolley export (advanced mode only) */}
+          {advancedMode && (
+            <button
+              onClick={() => downloadDataVolley(match, players)}
+              className="w-full bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 text-purple-400 py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2.5 transition-colors"
+            >
+              <Database size={18} />
+              {t.export_datavolley}
+            </button>
+          )}
         </div>
+
+        {/* Heatmap with export (advanced mode) */}
+        {advancedMode && match.actions.some(a => a.position) && (
+          <div className="mb-4">
+            <CourtHeatmap 
+              actions={match.actions} 
+              showExport={true}
+            />
+          </div>
+        )}
 
         {/* Reset button */}
         <div className="pt-4 border-t border-surface-600/50">

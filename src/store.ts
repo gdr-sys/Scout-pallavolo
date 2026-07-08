@@ -1,7 +1,8 @@
-import { Roster, MatchState, ActionEntry, Fundamental, PlayerStats, Player } from './types';
+import { Roster, MatchState, ActionEntry, Fundamental, PlayerStats, Player, AppSettings } from './types';
 
 const ROSTERS_KEY = 'volleyball_scout_rosters';
 const MATCH_KEY = 'volleyball_scout_match';
+const SETTINGS_KEY = 'volleyball_scout_settings';
 
 // Roster storage
 export function loadRosters(): Roster[] {
@@ -35,6 +36,20 @@ export function clearMatch() {
   localStorage.removeItem(MATCH_KEY);
 }
 
+// Settings storage
+export function loadSettings(): AppSettings {
+  try {
+    const data = localStorage.getItem(SETTINGS_KEY);
+    return data ? JSON.parse(data) : { advancedMode: false, language: 'it' };
+  } catch {
+    return { advancedMode: false, language: 'it' };
+  }
+}
+
+export function saveSettings(settings: AppSettings) {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
 // Default match
 export function createDefaultMatch(): MatchState {
   return {
@@ -43,6 +58,10 @@ export function createDefaultMatch(): MatchState {
     scores: [{ home: 0, away: 0 }],
     currentSet: 1,
     started: false,
+    starters: [],
+    liberos: [],
+    substitutions: [],
+    timeouts: [],
   };
 }
 
@@ -96,4 +115,21 @@ export function calculatePlayerStats(actions: ActionEntry[], players: Player[]):
 // UUID generator
 export function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
+}
+
+// Get favorite actions (most used action combos)
+export function getFavoriteActions(actions: ActionEntry[], topN: number = 5) {
+  const counts: Record<string, { fundamental: Fundamental; quality: string; count: number }> = {};
+  
+  for (const action of actions) {
+    const key = `${action.fundamental}_${action.quality}`;
+    if (!counts[key]) {
+      counts[key] = { fundamental: action.fundamental, quality: action.quality, count: 0 };
+    }
+    counts[key].count++;
+  }
+  
+  return Object.values(counts)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, topN);
 }
