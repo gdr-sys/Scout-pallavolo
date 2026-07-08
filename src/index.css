@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy-900: #0a1128;
+  --color-navy-800: #0f1d4d;
+  --color-navy-700: #1a2c6b;
+  --color-navy-600: #243380;
+  --color-navy-500: #2e4da0;
+  
+  --color-gold-400: #f5c842;
+  --color-gold-500: #e6b800;
+  --color-gold-600: #cc9e00;
+  
+  --color-surface-900: #0d1117;
+  --color-surface-800: #161b27;
+  --color-surface-700: #1e2535;
+  --color-surface-600: #252d42;
+  --color-surface-500: #2a3454;
+  
+  --color-muted: #8b9bc0;
+  --color-muted-dark: #4a5578;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 155, 192, 0.2);
+  border-radius: 10px;
+}
+
+/* Prevent text selection on buttons */
+button, .no-select {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Active press feedback */
+button:active {
+  transform: scale(0.95);
+}
+
+/* Smooth transitions */
+.transition-tab {
+  transition: all 0.2s ease;
+}
+
+/* Animate entrance */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeInUp 0.25s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-in {
+  animation: slideIn 0.2s ease-out;
+}
+
+/* Pulse for score change */
+@keyframes scorePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.score-pulse {
+  animation: scorePulse 0.3s ease;
+}
+
+/* Toast */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(20px); }
+}
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
