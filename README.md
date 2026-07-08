@@ -14,84 +14,126 @@ The application is available on GitHub Pages:
 ## ✨ Key Features
 
 ### 📋 Roster Management
-- Create custom teams
-- Add players with **name**, **jersey number**, and **role** (Setter, Opposite, Outside Hitter, Middle Blocker, Libero)
-- Edit and delete rosters
-- Data saved locally in the browser (LocalStorage) or synced to cloud (Firebase)
+
+* Create custom teams
+* Add players with **name**, **jersey number**, and **role** (Setter, Opposite, Outside Hitter, Middle Blocker, Libero)
+* Edit and delete rosters
+* Data saved locally in the browser (LocalStorage)
 
 ### 🎯 Real-Time Scouting
-- Quick player selection from the sidebar
-- Action recording for **5 fundamentals**:
-  - ⚡ **Attack** (ATK)
-  - 🛡️ **Reception** (REC)
-  - 🏐 **Serve** (SRV)
-  - 🧱 **Block** (BLK)
-  - 🤸 **Defense** (DEF)
-- Each action is rated on **4 quality levels**:
-  - `++` Excellent (green)
-  - `+` Positive (blue)
-  - `–` Negative (yellow)
-  - `=` Error (red)
-- **Undo** to revert the last action
-- Horizontal log with recent action history
+
+* Quick player selection from the sidebar
+* **Starters (6) + Liberos (up to 2)** always visible at the top
+* Action recording for **5 fundamentals**:
+  * ⚡ **Attack** (ATK)
+  * 🛡️ **Reception** (REC)
+  * 🏐 **Serve** (SRV)
+  * 🧱 **Block** (BLK)
+  * 🤸 **Defense** (DEF)
+* Each action is rated on **4 quality levels**:
+  * `++` Excellent (green)
+  * `+` Positive (blue)
+  * `–` Negative (yellow)
+  * `=` Error (red)
+* **Undo** to revert the last action
+* **Favorite Actions** bar with the 5 most used action combinations
+* **Haptic feedback** (vibration) on action registration
+* Horizontal log with recent action history
+
+### ⏱️ Timeout Tracker
+
+* Visual timeout counter for each team
+* 2 timeouts per set (standard regulation)
+* Filled/empty circles indicate used/available timeouts
+* +/- buttons to manage timeouts
+* Auto-reset on new set
+
+### 🔄 Substitution Log
+
+* Expandable panel to record substitutions
+* Select player going out (from court) and coming in (from bench)
+* **Real visual swap**: substituted players actually change position in the UI
+* Log with player names and numbers for each sub
+* Ability to undo any substitution
 
 ### 📊 Scoreboard
-- Integrated score counter in the top bar (Home vs Away)
-- Multi-set support with quick new set creation
-- Quick "Home Point" and "Away Point" buttons in Scout view
+
+* Integrated score counter in the top bar (Home vs Away)
+* Multi-set support with quick new set creation
+* Quick "Home Point" and "Away Point" buttons in Scout view
 
 ### 📈 Statistics
-- "All fundamentals" view with distribution bars per player
-- Single fundamental view with detailed table
-- Automatic calculation of:
-  - **Efficiency %** = (++ − –) / Total × 100
-  - **Positivity %** = (++ + +) / Total × 100
-- Filters by fundamental
+
+* "All fundamentals" view with distribution bars per player
+* Single fundamental view with detailed table
+* Automatic calculation of:
+  * **Efficiency %** = (++ − –) / Total × 100
+  * **Positivity %** = (++ + +) / Total × 100
+* **Key stats in bold**: Eff% and Pos% highlighted for quick reading
+* Filters by fundamental
+
+### 🗺️ Court Heatmap (Advanced Mode)
+
+* Visual volleyball court with zone markings (1-6)
+* Tap the court to record action position
+* Color-coded cells: green (positive) / red (negative)
+* Individual dots for sparse data
+* **Export as PNG image**
+* Filter by selected fundamental
 
 ### 📄 Summary & Export
-- Match summary with scores and aggregated statistics
-- Automatic **MVP** identification (player with most `++` actions)
-- **PDF export** with professional tables per fundamental
-- **CSV export** for analysis in Excel/Google Sheets
-- Option to end match and reset data
+
+* Match summary with scores and aggregated statistics
+* Automatic **MVP** identification (player with most `++` actions)
+* **PDF export** with professional tables per fundamental
+* **CSV export** for analysis in Excel/Google Sheets
+* **WhatsApp-friendly export**: plain text with emojis, ready to copy and share
+* **DataVolley export** (.dvw format) - Advanced Mode only
+* **Heatmap PNG export** - Advanced Mode only
+* Option to end match and reset data
+
+### ⚡ Advanced Mode
+
+Toggle in Settings to enable:
+* **Swipe gestures** on player cards (swipe right → ++, swipe left → =)
+* **Rotation selector** (1-6) saved with each action
+* **Position tracking** on court heatmap
+* **DataVolley export** (.dvw format)
+* **Enhanced live stats dashboard**
 
 ### 🌍 Multi-Language Support
-- 🇮🇹 Italian (default)
-- 🇬🇧 English
-- 🇪🇸 Spanish
-- 🇫🇷 French
-- 🇩🇪 German
-- 🇵🇹 Portuguese
+
+* 🇮🇹 Italian (default)
+* 🇬🇧 English
+* 🇪🇸 Spanish
+* 🇫🇷 French
+* 🇩🇪 German
+* 🇵🇹 Portuguese
 
 Automatic browser detection + manual selection in Settings.
-
-### 🔐 Cloud Sync (Optional)
-- **Google Sign-In** for cross-device sync
-- **Guest mode** for local-only usage
-- Data automatically synced to Firebase Firestore
 
 ---
 
 ## 🛠️ Tech Stack
 
 | Technology | Purpose |
-|---|---|
+|------------|---------|
 | **React 19** | UI library with functional components and hooks |
 | **TypeScript** | Static typing for code robustness |
 | **Vite** | Ultra-fast build tool with HMR |
 | **Tailwind CSS v4** | Utility-first styling with custom design system |
-| **Firebase** | Authentication (Google) + Firestore for cloud sync |
 | **jsPDF** + **jsPDF-AutoTable** | Client-side PDF generation |
 | **Lucide React** | Consistent, lightweight icon set |
-| **LocalStorage API** | Local data persistence (fallback) |
+| **LocalStorage API** | Local data persistence |
 
 ---
 
 ## 🚀 Installation & Setup
 
 ### Prerequisites
-- **Node.js** ≥ 18
-- **npm** ≥ 9
+
+* **Node.js** ≥ 18
+* **npm** ≥ 9
 
 ### Local Setup
 
@@ -119,180 +161,52 @@ The final file is generated in `dist/index.html` as a single-file (HTML + CSS + 
 
 ---
 
-## 🔥 Firebase Setup (Optional)
-
-Firebase enables cloud sync and Google authentication. **The app works perfectly without Firebase** — data is stored locally.
-
-### Step 1: Create Firebase Project
-
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Click **"Create a project"**
-3. Enter a project name (e.g., `volleyball-scout`)
-4. Disable Google Analytics (optional)
-5. Click **"Create project"**
-
-### Step 2: Add Web App
-
-1. In your project dashboard, click the **Web icon** (`</>`)
-2. Register app with a nickname (e.g., `volleyball-scout-web`)
-3. **Copy the `firebaseConfig` object** — you'll need it later
-4. Click **"Continue to console"**
-
-### Step 3: Enable Authentication
-
-1. In the left sidebar, click **"Authentication"**
-2. Click **"Get started"**
-3. Go to **"Sign-in method"** tab
-4. Enable **"Google"** provider
-5. Add your email as support email
-6. Click **"Save"**
-
-### Step 4: Create Firestore Database
-
-1. In the left sidebar, click **"Firestore Database"**
-2. Click **"Create database"**
-3. Select **"Start in production mode"**
-4. Choose a location close to your users
-5. Click **"Create"**
-
-### Step 5: Set Firestore Security Rules
-
-1. In Firestore, go to **"Rules"** tab
-2. Replace the rules with:
-
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Rosters: users can only access their own
-    match /rosters/{rosterId} {
-      allow read, write: if request.auth != null 
-        && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null;
-    }
-    // Matches: document ID = user ID
-    match /matches/{userId} {
-      allow read, write: if request.auth != null 
-        && request.auth.uid == userId;
-    }
-  }
-}
-```
-
-3. Click **"Publish"**
-
-### Step 6: Configure Environment Variables
-
-Create a `.env` file in the project root:
-
-```env
-VITE_FIREBASE_API_KEY=AIzaSyB...your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
-VITE_FIREBASE_APP_ID=1:123456789:web:abcdef123456
-```
-
-Get these values from your Firebase Console → Project Settings → Your apps → Config.
-
-### Step 7: Rebuild & Deploy
-
-```bash
-npm run build
-```
-
-Upload `dist/index.html` to GitHub Pages or any static host.
-
----
-
-## 🌐 Deploy to GitHub Pages
-
-### Option 1: Manual Deploy
-
-1. Run `npm run build`
-2. Copy `dist/index.html` to the root of your `gh-pages` branch
-3. Push to GitHub
-
-### Option 2: GitHub Actions (Recommended)
-
-Create `.github/workflows/deploy.yml`:
-
-```yaml
-name: Deploy to GitHub Pages
-
-on:
-  push:
-    branches: [main]
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - run: npm ci
-      
-      - name: Build
-        run: npm run build
-        env:
-          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
-      - uses: actions/deploy-pages@v4
-```
-
-Add your Firebase config as **Repository Secrets** in GitHub Settings → Secrets and variables → Actions.
-
----
-
 ## 📂 Project Structure
 
 ```
 Scout-pallavolo/
 ├── index.html              # HTML entry point
-├── .env                    # Firebase environment variables (optional)
 ├── src/
 │   ├── main.tsx            # React bootstrap with Providers
 │   ├── App.tsx             # Root component with navigation and global state
 │   ├── types.ts            # TypeScript definitions
 │   ├── store.ts            # Local persistence and stats calculation
-│   ├── exportUtils.ts      # PDF and CSV export functions
+│   ├── exportUtils.ts      # PDF, CSV, WhatsApp, DataVolley export
+│   ├── index.css           # Tailwind + custom animations
+│   ├── contexts/
+│   │   └── SettingsContext.tsx  # Advanced mode state management
 │   ├── i18n/
 │   │   ├── translations.ts # All translations (6 languages)
 │   │   └── context.tsx     # React Context for i18n
-│   ├── firebase/
-│   │   ├── config.ts       # Firebase configuration
-│   │   └── context.tsx     # Auth and Firestore context
+│   ├── utils/
+│   │   ├── cn.ts           # Class name utilities
+│   │   └── haptic.ts       # Vibration API wrapper
 │   └── components/
-│       ├── HomePage.tsx     # Match setup
-│       ├── ScoutPage.tsx    # Main scouting interface
-│       ├── StatsPage.tsx    # Statistics view
-│       ├── RosterPage.tsx   # Roster management
-│       ├── SummaryPage.tsx  # Summary and export
-│       └── SettingsModal.tsx # Language and account
+│       ├── HomePage.tsx        # Match setup + starter/libero selection
+│       ├── ScoutPage.tsx       # Main scouting interface
+│       ├── StatsPage.tsx       # Statistics view
+│       ├── RosterPage.tsx      # Roster management
+│       ├── SummaryPage.tsx     # Summary and export
+│       ├── SettingsModal.tsx   # Language and advanced mode settings
+│       ├── LiveStatsBar.tsx    # Real-time efficiency display
+│       ├── TimeoutTracker.tsx  # Timeout counter per team
+│       ├── SubstitutionPanel.tsx # Substitution log
+│       └── CourtHeatmap.tsx    # Court position visualization
+├── development.md          # Technical documentation
 ├── package.json
 ├── vite.config.ts
 └── README.md
 ```
+
+---
+
+## 📱 Mobile Optimization
+
+* Touch-optimized buttons and interactions
+* Haptic feedback on all actions
+* Swipe gestures in Advanced Mode
+* Responsive layout for phones and tablets
+* No pinch-zoom interference
 
 ---
 
