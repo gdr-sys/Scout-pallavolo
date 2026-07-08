@@ -128,39 +128,6 @@ Rilevamento automatico browser + selezione manuale nelle Impostazioni.
 
 ---
 
-## 🚀 Installazione & Setup
-
-### Prerequisiti
-
-* **Node.js** ≥ 18
-* **npm** ≥ 9
-
-### Setup Locale
-
-```bash
-# Clona il repository
-git clone https://github.com/gdr-sys/Scout-pallavolo.git
-cd Scout-pallavolo
-
-# Installa le dipendenze
-npm install
-
-# Avvia il server di sviluppo
-npm run dev
-```
-
-L'app sarà disponibile su `http://localhost:5173`
-
-### Build di Produzione
-
-```bash
-npm run build
-```
-
-Il file finale viene generato in `dist/index.html` come single-file (HTML + CSS + JS inline).
-
----
-
 ## 📂 Struttura Progetto
 
 ```
