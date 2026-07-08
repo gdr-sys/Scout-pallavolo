@@ -112,6 +112,13 @@ Toggle in Settings to enable:
 
 Automatic browser detection + manual selection in Settings.
 
+### 🔐 Cloud Sync (Optional)
+
+* **Google Sign-In** for cross-device sync
+* **Guest mode** for local-only usage
+* Data automatically synced to Firebase Firestore
+* Works completely offline without Firebase configured
+
 ---
 
 ## 🛠️ Tech Stack
@@ -123,8 +130,42 @@ Automatic browser detection + manual selection in Settings.
 | **Vite** | Ultra-fast build tool with HMR |
 | **Tailwind CSS v4** | Utility-first styling with custom design system |
 | **jsPDF** + **jsPDF-AutoTable** | Client-side PDF generation |
+| **Firebase** | Authentication (Google) + Firestore for cloud sync |
 | **Lucide React** | Consistent, lightweight icon set |
-| **LocalStorage API** | Local data persistence |
+| **LocalStorage API** | Local data persistence (fallback) |
+
+---
+
+## 🚀 Installation & Setup
+
+### Prerequisites
+
+* **Node.js** ≥ 18
+* **npm** ≥ 9
+
+### Local Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/gdr-sys/Scout-pallavolo.git
+cd Scout-pallavolo
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+The app will be available at `http://localhost:5173`
+
+### Production Build
+
+```bash
+npm run build
+```
+
+The final file is generated in `dist/index.html` as a single-file (HTML + CSS + JS inline).
 
 ---
 
@@ -142,6 +183,9 @@ Scout-pallavolo/
 │   ├── index.css           # Tailwind + custom animations
 │   ├── contexts/
 │   │   └── SettingsContext.tsx  # Advanced mode state management
+│   ├── firebase/
+│   │   ├── config.ts           # Firebase configuration
+│   │   └── context.tsx         # Auth and Firestore context
 │   ├── i18n/
 │   │   ├── translations.ts # All translations (6 languages)
 │   │   └── context.tsx     # React Context for i18n

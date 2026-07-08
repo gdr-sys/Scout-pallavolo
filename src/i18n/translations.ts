@@ -137,6 +137,15 @@ export type TranslationKeys = {
   player_in: string;
   player_out: string;
   confirm_sub: string;
+  // Auth
+  auth_sign_in: string;
+  auth_sign_out: string;
+  auth_sign_in_google: string;
+  auth_sign_in_anonymous: string;
+  auth_signed_in_as: string;
+  auth_guest: string;
+  auth_synced: string;
+  auth_local_only: string;
 };
 
 const it: TranslationKeys = {
@@ -252,6 +261,14 @@ const it: TranslationKeys = {
   swipe_left_negative: 'Swipe ← per =',
   select_starters: 'Seleziona Titolari (6)',
   rotation: 'Rotazione',
+  auth_sign_in: 'Accedi',
+  auth_sign_out: 'Esci',
+  auth_sign_in_google: 'Accedi con Google',
+  auth_sign_in_anonymous: 'Continua come ospite',
+  auth_signed_in_as: 'Connesso come',
+  auth_guest: 'Ospite',
+  auth_synced: 'Dati sincronizzati',
+  auth_local_only: 'Solo dati locali',
   liberos: 'Liberi',
   select_liberos: 'Seleziona Liberi (max 2)',
   timeout: 'Timeout',
@@ -381,6 +398,14 @@ const en: TranslationKeys = {
   swipe_left_negative: 'Swipe ← for =',
   select_starters: 'Select Starters (6)',
   rotation: 'Rotation',
+  auth_sign_in: 'Sign In',
+  auth_sign_out: 'Sign Out',
+  auth_sign_in_google: 'Sign in with Google',
+  auth_sign_in_anonymous: 'Continue as guest',
+  auth_signed_in_as: 'Signed in as',
+  auth_guest: 'Guest',
+  auth_synced: 'Data synced',
+  auth_local_only: 'Local data only',
   liberos: 'Liberos',
   select_liberos: 'Select Liberos (max 2)',
   timeout: 'Timeout',

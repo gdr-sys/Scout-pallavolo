@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Roster, Player, PlayerRole } from '../types';
 import { generateId } from '../store';
 import { useI18n } from '../i18n/context';
+import { getRoleName, getRoleShort, getRoleColor, PLAYER_ROLES } from '../utils/roles';
 import { cn } from '../utils/cn';
 import { Users, Plus, Trash2, Edit3, Check, X, ChevronDown, ChevronUp, UserPlus } from 'lucide-react';
 
@@ -9,19 +10,6 @@ interface Props {
   rosters: Roster[];
   onSave: (rosters: Roster[]) => void;
 }
-
-function getRoleInfo(role: PlayerRole) {
-  switch (role) {
-    case 'Palleggiatore': return { short: 'PAL', color: 'text-blue-400', bg: 'bg-blue-500/10' };
-    case 'Opposto': return { short: 'OPP', color: 'text-red-400', bg: 'bg-red-500/10' };
-    case 'Schiacciatore': return { short: 'SCH', color: 'text-green-400', bg: 'bg-green-500/10' };
-    case 'Centrale': return { short: 'CEN', color: 'text-yellow-400', bg: 'bg-yellow-500/10' };
-    case 'Libero': return { short: 'LIB', color: 'text-purple-400', bg: 'bg-purple-500/10' };
-    default: return { short: '?', color: 'text-muted', bg: 'bg-surface-700' };
-  }
-}
-
-const ROLES: PlayerRole[] = ['Palleggiatore', 'Opposto', 'Schiacciatore', 'Centrale', 'Libero'];
 
 export default function RosterPage({ rosters, onSave }: Props) {
   const { t } = useI18n();
@@ -202,8 +190,8 @@ export default function RosterPage({ rosters, onSave }: Props) {
                           onChange={(e) => setPRole(e.target.value as PlayerRole)}
                           className="flex-1 bg-surface-900/50 border border-surface-500 rounded-lg px-3 py-2 text-sm text-white outline-none"
                         >
-                          {ROLES.map(r => (
-                            <option key={r} value={r}>{r}</option>
+                          {PLAYER_ROLES.map(r => (
+                            <option key={r} value={r}>{getRoleName(r, t)}</option>
                           ))}
                         </select>
                         <button
@@ -221,15 +209,15 @@ export default function RosterPage({ rosters, onSave }: Props) {
                       {roster.players
                         .sort((a, b) => a.number - b.number)
                         .map((player) => {
-                          const roleInfo = getRoleInfo(player.role);
+                          const roleColor = getRoleColor(player.role);
                           return (
                             <div key={player.id} className="flex items-center gap-2 px-2 py-1.5 bg-surface-700/30 rounded-lg">
                               <span className="w-7 h-7 rounded-lg bg-gold-400/10 flex items-center justify-center text-xs font-extrabold text-gold-400">
                                 {player.number}
                               </span>
                               <span className="text-sm text-white font-medium flex-1">{player.name}</span>
-                              <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-md", roleInfo.bg, roleInfo.color)}>
-                                {roleInfo.short}
+                              <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-md", roleColor.bg, roleColor.color)}>
+                                {getRoleShort(player.role, t)}
                               </span>
                               <button
                                 onClick={() => removePlayer(roster.id, player.id)}

@@ -112,6 +112,13 @@ Toggle nelle Impostazioni per abilitare:
 
 Rilevamento automatico browser + selezione manuale nelle Impostazioni.
 
+### 🔐 Sincronizzazione Cloud (Opzionale)
+
+* **Google Sign-In** per sync tra dispositivi
+* **Modalità ospite** per uso solo locale
+* Dati sincronizzati automaticamente su Firebase Firestore
+* Funziona completamente offline senza Firebase configurato
+
 ---
 
 ## 🛠️ Stack Tecnologico
@@ -123,8 +130,42 @@ Rilevamento automatico browser + selezione manuale nelle Impostazioni.
 | **Vite** | Build tool ultra-veloce con HMR |
 | **Tailwind CSS v4** | Styling utility-first con design system personalizzato |
 | **jsPDF** + **jsPDF-AutoTable** | Generazione PDF lato client |
+| **Firebase** | Autenticazione (Google) + Firestore per sync cloud |
 | **Lucide React** | Set di icone consistente e leggero |
-| **LocalStorage API** | Persistenza dati locale |
+| **LocalStorage API** | Persistenza dati locale (fallback) |
+
+---
+
+## 🚀 Installazione & Setup
+
+### Prerequisiti
+
+* **Node.js** ≥ 18
+* **npm** ≥ 9
+
+### Setup Locale
+
+```bash
+# Clona il repository
+git clone https://github.com/gdr-sys/Scout-pallavolo.git
+cd Scout-pallavolo
+
+# Installa le dipendenze
+npm install
+
+# Avvia il server di sviluppo
+npm run dev
+```
+
+L'app sarà disponibile su `http://localhost:5173`
+
+### Build di Produzione
+
+```bash
+npm run build
+```
+
+Il file finale viene generato in `dist/index.html` come single-file (HTML + CSS + JS inline).
 
 ---
 
@@ -142,6 +183,9 @@ Scout-pallavolo/
 │   ├── index.css           # Tailwind + animazioni custom
 │   ├── contexts/
 │   │   └── SettingsContext.tsx  # Gestione stato modalità avanzata
+│   ├── firebase/
+│   │   ├── config.ts           # Configurazione Firebase
+│   │   └── context.tsx         # Context Auth e Firestore
 │   ├── i18n/
 │   │   ├── translations.ts # Tutte le traduzioni (6 lingue)
 │   │   └── context.tsx     # React Context per i18n
