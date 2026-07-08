@@ -136,39 +136,6 @@ Automatic browser detection + manual selection in Settings.
 
 ---
 
-## 🚀 Installation & Setup
-
-### Prerequisites
-
-* **Node.js** ≥ 18
-* **npm** ≥ 9
-
-### Local Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/gdr-sys/Scout-pallavolo.git
-cd Scout-pallavolo
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-
-The app will be available at `http://localhost:5173`
-
-### Production Build
-
-```bash
-npm run build
-```
-
-The final file is generated in `dist/index.html` as a single-file (HTML + CSS + JS inline).
-
----
-
 ## 📂 Project Structure
 
 ```
