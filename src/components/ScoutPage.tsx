@@ -345,16 +345,26 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
     // Haptic feedback
     triggerHaptic(pendingAction.quality === '++' ? 50 : pendingAction.quality === '=' ? 80 : 30);
 
-    // Update match with new action
-    onUpdate({
+    // Build updated match with BOTH action AND score change
+    const updatedMatch: MatchState = {
       ...match,
       actions: [...match.actions, entry],
-    });
+    };
 
-    // If user selected a team for score, update score
+    // If user selected a team for score, update score in the same update
     if (addPointTo) {
-      onScoreChange(match.currentSet - 1, addPointTo, 1);
+      const setIdx = match.currentSet - 1;
+      const newScores = [...match.scores];
+      if (newScores[setIdx]) {
+        const score = { ...newScores[setIdx] };
+        score[addPointTo] = score[addPointTo] + 1;
+        newScores[setIdx] = score;
+        updatedMatch.scores = newScores;
+      }
     }
+
+    // Update with both action and score in one call
+    onUpdate(updatedMatch);
 
     // Reset and close
     setPendingAction(null);
@@ -363,7 +373,7 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
     setPendingPosition(null);
     
     showToast(`#${player.number} ${pendingAction.fundamental} ${pendingAction.quality}`);
-  }, [pendingAction, players, match, advancedMode, currentRotation, pendingPosition, onUpdate, onScoreChange]);
+  }, [pendingAction, players, match, advancedMode, currentRotation, pendingPosition, onUpdate]);
 
   const handleUndo = () => {
     if (match.actions.length === 0) return;
