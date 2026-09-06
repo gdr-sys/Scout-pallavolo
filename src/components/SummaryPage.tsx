@@ -4,7 +4,7 @@ import { exportCSV, exportPDF, generateWhatsAppText, downloadDataVolley } from '
 import { useI18n } from '../i18n/context';
 import { useSettings } from '../contexts/SettingsContext';
 import { cn } from '../utils/cn';
-import { FileText, Download, FileSpreadsheet, RotateCcw, Trophy, Clock, Zap, MessageCircle, Database, Check } from 'lucide-react';
+import { FileText, Download, FileSpreadsheet, RotateCcw, Trophy, Clock, Zap, MessageCircle, Database, Check, Calculator } from 'lucide-react';
 import CourtHeatmap from './CourtHeatmap';
 
 interface Props {
@@ -214,9 +214,11 @@ export default function SummaryPage({ stats, match, players, onResetMatch }: Pro
 
         {/* Metric Formulas */}
         <div className="bg-surface-800 border border-surface-600/50 rounded-2xl p-4 mb-4">
-          <p className="text-[10px] uppercase tracking-wider text-muted-dark font-bold mb-3">{t.report_formulas_title}</p>
+          <div className="flex items-center gap-2 mb-3">
+            <Calculator size={16} className="text-gold-400" />
+            <p className="text-[10px] uppercase tracking-wider text-muted-dark font-bold">{t.report_formulas_title}</p>
+          </div>
           <div className="space-y-2 text-[11px] text-muted">
-            <p><span className="text-gold-400 font-bold">Eff%</span>: {t.report_formula_efficiency}</p>
             <p><span className="text-gold-400 font-bold">Pos%</span>: {t.report_formula_positivity}</p>
             <p><span className="text-gold-400 font-bold">SR%</span>: {t.report_formula_success_rate}</p>
             <p><span className="text-gold-400 font-bold">ER%</span>: {t.report_formula_error_rate}</p>

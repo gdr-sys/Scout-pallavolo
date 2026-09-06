@@ -204,6 +204,26 @@ export function exportPDF(stats: PlayerStats[], match: MatchState, lang: string 
   });
 
   doc.save(`scout_${match.info.homeTeam}_vs_${match.info.awayTeam}_${match.info.date || 'match'}.pdf`);
+
+  // Add metric formulas as footer
+  const formulasTitle = lang === 'it' ? 'Formule Metriche' : 'Metric Formulas';
+  doc.addPage();
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text(formulasTitle, 14, 15);
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  const formulaLines = [
+    `Pos%: ((++ + +) / Total) x 100`,
+    `SR%: ((++ + +) / Total) x 100`,
+    `ER%: (= / Total) x 100`,
+    `NE%: ((++ - - - =) / Total) x 100`,
+    `++ = Excellent, + = Positive, - = Negative, = = Error`
+  ];
+  formulaLines.forEach((line, i) => {
+    doc.text(line, 14, 25 + (i * 8));
+  });
 }
 
 // WhatsApp-friendly plain text export
@@ -260,6 +280,16 @@ export function generateWhatsAppText(stats: PlayerStats[], match: MatchState, la
     const mvpText = lang === 'it' ? 'MVP della partita' : 'Match MVP';
     lines.push(`\u2b50 *${mvpLabel}: ${mvpText}* #${mvp.playerNumber} ${mvp.playerName} (${mvp.totals.pp}++ su ${mvp.totals.total})`);
   }
+
+  // Add metric formulas
+  lines.push('');
+  const formulasTitle = lang === 'it' ? 'Formule Metriche' : 'Metric Formulas';
+  lines.push(`*\ud83d\udcd3 ${formulasTitle}:*`);
+  lines.push(`Pos%: ((++ + +) / Total) x 100`);
+  lines.push(`SR%: ((++ + +) / Total) x 100`);
+  lines.push(`ER%: (= / Total) x 100`);
+  lines.push(`NE%: ((++ - - - =) / Total) x 100`);
+  lines.push(`++ = Excellent, + = Positive, - = Negative, = = Error`);
 
   return lines.join('\n');
 }
