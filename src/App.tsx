@@ -16,6 +16,7 @@ import RosterPage from './components/RosterPage';
 import SummaryPage from './components/SummaryPage';
 import SettingsModal from './components/SettingsModal';
 import GameListModal from './components/GameListModal';
+import MatchesPage from './components/MatchesPage';
 import { Home, Crosshair, BarChart3, Users, FileText, Minus, Plus, Settings, Cloud, History, PlayCircle } from 'lucide-react';
 
 export default function App() {
@@ -188,6 +189,7 @@ export default function App() {
 
   const TABS: { id: TabId; label: string; icon: typeof Home }[] = [
     { id: 'home', label: t.nav_home, icon: Home },
+    { id: 'matches', label: t.nav_matches, icon: History },
     { id: 'scout', label: t.nav_scout, icon: Crosshair },
     { id: 'stats', label: t.nav_stats, icon: BarChart3 },
     { id: 'roster', label: t.nav_roster, icon: Users },
@@ -284,14 +286,6 @@ export default function App() {
           </>
         )}
 
-        {/* Games button - always visible */}
-        <button
-          onClick={() => setGameListOpen(true)}
-          className="w-9 h-9 rounded-xl bg-navy-600/30 hover:bg-navy-600/50 flex items-center justify-center transition-colors flex-shrink-0"
-        >
-          <History size={16} className="text-muted" />
-        </button>
-        
         {/* Settings button - always visible */}
         <button
           onClick={() => setSettingsOpen(true)}
@@ -305,6 +299,23 @@ export default function App() {
       <div className="flex-1 flex overflow-hidden">
         {activeTab === 'home' && (
           <HomePage match={match} rosters={rosters} onStartMatch={handleStartMatch} />
+        )}
+        {activeTab === 'matches' && (
+          <MatchesPage
+            games={games}
+            currentGameId={currentGame?.id || null}
+            onLoadGame={handleLoadGame}
+            onNewGame={handleNewGame}
+            onDeleteGame={(gameId) => {
+              if (deleteGame(gameId)) {
+                setGames(loadGames());
+                if (currentGame?.id === gameId) {
+                  setCurrentGame(null);
+                  setCurrentGameId(null);
+                }
+              }
+            }}
+          />
         )}
         {activeTab === 'scout' && (
           <ScoutPage
@@ -358,25 +369,6 @@ export default function App() {
 
       {/* Settings Modal */}
       <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
-      
-      {/* Game List Modal */}
-      <GameListModal
-        isOpen={gameListOpen}
-        onClose={() => setGameListOpen(false)}
-        games={games}
-        currentGameId={currentGame?.id || null}
-        onLoadGame={handleLoadGame}
-        onNewGame={handleNewGame}
-        onDeleteGame={(gameId) => {
-          if (deleteGame(gameId)) {
-            setGames(loadGames());
-            if (currentGame?.id === gameId) {
-              setCurrentGame(null);
-              setCurrentGameId(null);
-            }
-          }
-        }}
-      />
     </div>
   );
 }

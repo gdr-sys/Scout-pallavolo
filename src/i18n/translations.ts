@@ -17,6 +17,7 @@ export type TranslationKeys = {
   nav_stats: string;
   nav_roster: string;
   nav_report: string;
+  nav_matches: string;
   // Game management
   games_title: string;
   games_no_games: string;
@@ -189,6 +190,7 @@ const it: TranslationKeys = {
   nav_stats: 'Stats',
   nav_roster: 'Rosa',
   nav_report: 'Report',
+  nav_matches: 'Partite',
   create: 'Crea',
   save: 'Salva',
   cancel: 'Annulla',
@@ -359,6 +361,8 @@ const en: TranslationKeys = {
   nav_stats: 'Stats',
   nav_roster: 'Roster',
   nav_report: 'Report',
+  nav_matches: 'Matches',
+  nav_matches: 'Matches',
   create: 'Create',
   save: 'Save',
   cancel: 'Cancel',
@@ -526,6 +530,7 @@ const es: TranslationKeys = {
   nav_home: 'Inicio',
   nav_roster: 'Plantilla',
   nav_report: 'Informe',
+  nav_matches: 'Partidos',
   create: 'Crear',
   save: 'Guardar',
   cancel: 'Cancelar',
@@ -564,6 +569,7 @@ const fr: TranslationKeys = {
   nav_home: 'Accueil',
   nav_roster: 'Effectif',
   nav_report: 'Rapport',
+  nav_matches: 'Matchs',
   settings_advanced_mode: 'Mode Avancé',
   settings_advanced_mode_desc: 'Activer les gestes swipe, coordonnées, rotations et export DataVolley',
   starters: 'Titulaires',
@@ -598,6 +604,7 @@ const de: TranslationKeys = {
   nav_home: 'Start',
   nav_roster: 'Kader',
   nav_report: 'Bericht',
+  nav_matches: 'Spiele',
   settings_advanced_mode: 'Erweiterter Modus',
   settings_advanced_mode_desc: 'Swipe-Gesten, Positionskoordinaten, Rotationen und DataVolley-Export aktivieren',
   starters: 'Stammformation',
@@ -632,6 +639,7 @@ const pt: TranslationKeys = {
   nav_home: 'Início',
   nav_roster: 'Elenco',
   nav_report: 'Relatório',
+  nav_matches: 'Partidas',
   settings_advanced_mode: 'Modo Avançado',
   settings_advanced_mode_desc: 'Ativar gestos swipe, coordenadas, rotações e exportação DataVolley',
   starters: 'Titulares',

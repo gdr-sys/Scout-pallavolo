@@ -85,7 +85,7 @@ export interface SavedGame {
   players: Player[];
 }
 
-export type TabId = 'scout' | 'home' | 'stats' | 'roster' | 'summary';
+export type TabId = 'scout' | 'home' | 'stats' | 'roster' | 'summary' | 'matches';
 
 export interface PlayerStats {
   playerId: string;
