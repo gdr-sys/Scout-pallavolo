@@ -15,37 +15,43 @@ import StatsPage from './components/StatsPage';
 import RosterPage from './components/RosterPage';
 import SummaryPage from './components/SummaryPage';
 import SettingsModal from './components/SettingsModal';
-import GameListModal from './components/GameListModal';
 import MatchesPage from './components/MatchesPage';
-import { Home, Crosshair, BarChart3, Users, FileText, Minus, Plus, Settings, Cloud, History, PlayCircle } from 'lucide-react';
+import { Home, Crosshair, BarChart3, Users, FileText, Minus, Plus, Settings, Cloud, History } from 'lucide-react';
 
 export default function App() {
   const { t } = useI18n();
   const { user, cloudRosters, cloudMatch, saveRostersToCloud, saveMatchToCloud, isSyncing, isConfigured } = useAuth();
 
   const [activeTab, setActiveTab] = useState<TabId>('home');
-  const [rosters, setRosters] = useState<Roster[]>(() => loadRosters());
-  const [games, setGames] = useState<GameSession[]>(() => loadGames());
-  const [currentGame, setCurrentGame] = useState<GameSession | null>(() => {
-    const saved = loadCurrentGame();
-    if (saved) return saved;
-    // Legacy fallback
-    const legacyMatch = loadMatch();
-    if (legacyMatch) {
-      return {
-        id: 'legacy',
-        match: legacyMatch,
-        players: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      };
-    }
-    return null;
-  });
+  const [rosters, setRosters] = useState<Roster[]>([]);
+  const [games, setGames] = useState<GameSession[]>([]);
+  const [currentGame, setCurrentGame] = useState<GameSession | null>(null);
   const [scorePulse, setScorePulse] = useState<'home' | 'away' | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [gameListOpen, setGameListOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const match = currentGame?.match || createDefaultMatch();
+
+  // Load initial data
+  useEffect(() => {
+    async function loadInitialData() {
+      setLoading(true);
+      try {
+        const [loadedRosters, loadedGames, loadedCurrentGame] = await Promise.all([
+          loadRosters(),
+          loadGames(),
+          loadCurrentGame()
+        ]);
+        setRosters(loadedRosters);
+        setGames(loadedGames);
+        setCurrentGame(loadedCurrentGame);
+      } catch (error) {
+        console.error('Failed to load initial data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadInitialData();
+  }, []);
 
   // Sync rosters from cloud when user logs in
   useEffect(() => {
@@ -66,18 +72,27 @@ export default function App() {
       };
       setCurrentGame(newGame);
       setCurrentGameId('cloud');
+      setGames([newGame]);
     }
   }, [user, cloudMatch]);
 
   // Persist rosters locally
   useEffect(() => {
-    saveRosters(rosters);
+    if (rosters.length > 0) {
+      saveRosters(rosters);
+    }
   }, [rosters]);
 
   // Persist games locally
   useEffect(() => {
+    if (games.length > 0) {
+      saveGames(games);
+    }
+  }, [games]);
+
+  // Persist current game ID
+  useEffect(() => {
     if (currentGame) {
-      saveGame(currentGame);
       setCurrentGameId(currentGame.id);
     }
   }, [currentGame]);
@@ -100,14 +115,14 @@ export default function App() {
     return calculatePlayerStats(match.actions, rosterPlayers);
   }, [match.actions, rosterPlayers]);
 
-  const handleSaveRosters = useCallback((updated: Roster[]) => {
+  const handleSaveRosters = useCallback(async (updated: Roster[]) => {
     setRosters(updated);
     if (user && !user.isAnonymous) {
       saveRostersToCloud(updated);
     }
   }, [user, saveRostersToCloud]);
 
-  const handleStartMatch = useCallback((updated: MatchState) => {
+  const handleStartMatch = useCallback(async (updated: MatchState) => {
     const newGame: GameSession = {
       id: generateId(),
       match: updated,
@@ -117,13 +132,14 @@ export default function App() {
     };
     setCurrentGame(newGame);
     setCurrentGameId(newGame.id);
+    setGames([...games, newGame]);
     setActiveTab('scout');
     if (user && !user.isAnonymous) {
       saveMatchToCloud(updated);
     }
-  }, [user, saveMatchToCloud, rosterPlayers]);
+  }, [user, saveMatchToCloud, rosterPlayers, games]);
 
-  const handleUpdateMatch = useCallback((updated: MatchState) => {
+  const handleUpdateMatch = useCallback(async (updated: MatchState) => {
     if (currentGame) {
       const newGame = {
         ...currentGame,
@@ -132,13 +148,18 @@ export default function App() {
         updatedAt: Date.now(),
       };
       setCurrentGame(newGame);
+      
+      // Update in games array
+      const updatedGames = games.map(g => g.id === currentGame.id ? newGame : g);
+      setGames(updatedGames);
+      
       if (user && !user.isAnonymous) {
         saveMatchToCloud(updated);
       }
     }
-  }, [user, saveMatchToCloud, currentGame, rosterPlayers]);
+  }, [user, saveMatchToCloud, currentGame, rosterPlayers, games]);
 
-  const handleScoreChange = useCallback((setIdx: number, team: 'home' | 'away', delta: number) => {
+  const handleScoreChange = useCallback(async (setIdx: number, team: 'home' | 'away', delta: number) => {
     if (currentGame) {
       const updatedMatch = { ...currentGame.match };
       const newScores = [...updatedMatch.scores];
@@ -154,13 +175,17 @@ export default function App() {
         updatedAt: Date.now(),
       };
       setCurrentGame(newGame);
+      
+      const updatedGames = games.map(g => g.id === currentGame.id ? newGame : g);
+      setGames(updatedGames);
+      
       if (user && !user.isAnonymous) {
         saveMatchToCloud(updatedMatch);
       }
     }
     setScorePulse(team);
     setTimeout(() => setScorePulse(null), 300);
-  }, [user, saveMatchToCloud, currentGame]);
+  }, [user, saveMatchToCloud, currentGame, games]);
 
   const handleResetMatch = useCallback(() => {
     const newMatch = createDefaultMatch();
@@ -173,7 +198,7 @@ export default function App() {
     }
   }, [user, saveMatchToCloud]);
 
-  const handleLoadGame = useCallback((game: GameSession) => {
+  const handleLoadGame = useCallback(async (game: GameSession) => {
     setCurrentGame(game);
     setCurrentGameId(game.id);
     setActiveTab('scout');
@@ -184,6 +209,18 @@ export default function App() {
     setCurrentGame(null);
     setActiveTab('home');
   }, []);
+
+  const handleDeleteGame = useCallback(async (gameId: string) => {
+    const success = await deleteGame(gameId);
+    if (success) {
+      const updatedGames = games.filter(g => g.id !== gameId);
+      setGames(updatedGames);
+      if (currentGame?.id === gameId) {
+        setCurrentGame(null);
+        setCurrentGameId(null);
+      }
+    }
+  }, [games, currentGame]);
 
   const currentScore = match.scores[match.currentSet - 1] || { home: 0, away: 0 };
 
@@ -198,6 +235,18 @@ export default function App() {
 
   // Determine what to show in the top bar based on active tab
   const showScoreBar = match.started && activeTab === 'scout';
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full bg-surface-900 text-white overflow-hidden">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-400 mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-surface-900 text-white overflow-hidden">
@@ -306,15 +355,7 @@ export default function App() {
             currentGameId={currentGame?.id || null}
             onLoadGame={handleLoadGame}
             onNewGame={handleNewGame}
-            onDeleteGame={(gameId) => {
-              if (deleteGame(gameId)) {
-                setGames(loadGames());
-                if (currentGame?.id === gameId) {
-                  setCurrentGame(null);
-                  setCurrentGameId(null);
-                }
-              }
-            }}
+            onDeleteGame={handleDeleteGame}
           />
         )}
         {activeTab === 'scout' && (

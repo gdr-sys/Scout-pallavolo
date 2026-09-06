@@ -362,7 +362,6 @@ const en: TranslationKeys = {
   nav_roster: 'Roster',
   nav_report: 'Report',
   nav_matches: 'Matches',
-  nav_matches: 'Matches',
   create: 'Create',
   save: 'Save',
   cancel: 'Cancel',

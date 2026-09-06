@@ -1,4 +1,5 @@
 import { Roster, MatchState, ActionEntry, Fundamental, PlayerStats, Player, AppSettings, GameSession } from './types';
+import { db, migrateFromLocalStorage } from './db';
 
 const ROSTERS_KEY = 'volleyball_scout_rosters';
 const MATCH_KEY = 'volleyball_scout_match';
@@ -6,32 +7,53 @@ const GAMES_KEY = 'volleyball_scout_games';
 const SETTINGS_KEY = 'volleyball_scout_settings';
 const CURRENT_GAME_ID = 'volleyball_scout_current_game_id';
 
+// Initialize database and migrate from localStorage
+migrateFromLocalStorage().catch(console.error);
+
 // Roster storage
-export function loadRosters(): Roster[] {
+export async function loadRosters(): Promise<Roster[]> {
   try {
+    const rosters = await db.rosters.toArray();
+    if (rosters.length > 0) return rosters;
+    // Fallback to localStorage for backward compatibility
     const data = localStorage.getItem(ROSTERS_KEY);
     return data ? JSON.parse(data) : [];
   } catch {
-    return [];
+    const data = localStorage.getItem(ROSTERS_KEY);
+    return data ? JSON.parse(data) : [];
   }
 }
 
-export function saveRosters(rosters: Roster[]) {
-  localStorage.setItem(ROSTERS_KEY, JSON.stringify(rosters));
+export async function saveRosters(rosters: Roster[]) {
+  try {
+    await db.rosters.bulkPut(rosters);
+    localStorage.setItem(ROSTERS_KEY, JSON.stringify(rosters));
+  } catch {
+    localStorage.setItem(ROSTERS_KEY, JSON.stringify(rosters));
+  }
 }
 
 // Match storage (legacy - for backward compatibility)
-export function loadMatch(): MatchState | null {
+export async function loadMatch(): Promise<MatchState | null> {
   try {
+    const matches = await db.match.toArray();
+    if (matches.length > 0) return matches[0];
+    // Fallback to localStorage
     const data = localStorage.getItem(MATCH_KEY);
     return data ? JSON.parse(data) : null;
   } catch {
-    return null;
+    const data = localStorage.getItem(MATCH_KEY);
+    return data ? JSON.parse(data) : null;
   }
 }
 
-export function saveMatch(match: MatchState) {
-  localStorage.setItem(MATCH_KEY, JSON.stringify(match));
+export async function saveMatch(match: MatchState) {
+  try {
+    await db.match.put(match);
+    localStorage.setItem(MATCH_KEY, JSON.stringify(match));
+  } catch {
+    localStorage.setItem(MATCH_KEY, JSON.stringify(match));
+  }
 }
 
 export function clearMatch() {
@@ -39,17 +61,26 @@ export function clearMatch() {
 }
 
 // Multiple games storage
-export function loadGames(): GameSession[] {
+export async function loadGames(): Promise<GameSession[]> {
   try {
+    const games = await db.games.toArray();
+    if (games.length > 0) return games;
+    // Fallback to localStorage
     const data = localStorage.getItem(GAMES_KEY);
     return data ? JSON.parse(data) : [];
   } catch {
-    return [];
+    const data = localStorage.getItem(GAMES_KEY);
+    return data ? JSON.parse(data) : [];
   }
 }
 
-export function saveGames(games: GameSession[]) {
-  localStorage.setItem(GAMES_KEY, JSON.stringify(games));
+export async function saveGames(games: GameSession[]) {
+  try {
+    await db.games.bulkPut(games);
+    localStorage.setItem(GAMES_KEY, JSON.stringify(games));
+  } catch {
+    localStorage.setItem(GAMES_KEY, JSON.stringify(games));
+  }
 }
 
 export function getCurrentGameId(): string | null {
@@ -68,46 +99,72 @@ export function setCurrentGameId(gameId: string | null) {
   }
 }
 
-export function saveGame(session: GameSession): GameSession {
-  const games = loadGames();
-  const existingIndex = games.findIndex(g => g.id === session.id);
-  const updatedSession = {
-    ...session,
-    updatedAt: Date.now(),
-  };
-  
-  if (existingIndex >= 0) {
-    games[existingIndex] = updatedSession;
-  } else {
-    games.push(updatedSession);
-  }
-  
-  saveGames(games);
-  return updatedSession;
-}
-
-export function deleteGame(gameId: string): boolean {
-  const games = loadGames();
-  const index = games.findIndex(g => g.id === gameId);
-  if (index >= 0) {
-    games.splice(index, 1);
+export async function saveGame(session: GameSession): Promise<GameSession> {
+  try {
+    await db.games.put(session);
+  } catch {
+    // Fallback to localStorage
+    const games = await loadGames();
+    const existingIndex = games.findIndex(g => g.id === session.id);
+    const updatedSession = {
+      ...session,
+      updatedAt: Date.now(),
+    };
+    
+    if (existingIndex >= 0) {
+      games[existingIndex] = updatedSession;
+    } else {
+      games.push(updatedSession);
+    }
+    
     saveGames(games);
-    return true;
+    return updatedSession;
   }
-  return false;
+  
+  return session;
 }
 
-export function loadCurrentGame(): GameSession | null {
+export async function deleteGame(gameId: string): Promise<boolean> {
+  try {
+    await db.games.delete(gameId);
+    const games = await loadGames();
+    const index = games.findIndex(g => g.id === gameId);
+    if (index >= 0) {
+      games.splice(index, 1);
+      saveGames(games);
+    }
+    return true;
+  } catch {
+    const games = await loadGames();
+    const index = games.findIndex(g => g.id === gameId);
+    if (index >= 0) {
+      games.splice(index, 1);
+      saveGames(games);
+      return true;
+    }
+    return false;
+  }
+}
+
+export async function loadCurrentGame(): Promise<GameSession | null> {
   const currentId = getCurrentGameId();
   if (!currentId) return null;
   
-  const games = loadGames();
-  return games.find(g => g.id === currentId) || null;
+  try {
+    const games = await loadGames();
+    return games.find(g => g.id === currentId) || null;
+  } catch {
+    return null;
+  }
 }
 
-export function getGameById(gameId: string): GameSession | null {
-  const games = loadGames();
-  return games.find(g => g.id === gameId) || null;
+export async function getGameById(gameId: string): Promise<GameSession | null> {
+  try {
+    const games = await loadGames();
+    return games.find(g => g.id === gameId) || null;
+  } catch {
+    return null;
+  }
 }
 
 // Settings storage

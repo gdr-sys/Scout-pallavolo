@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { GameSession } from '../types';
 import { useI18n } from '../i18n/context';
 import { cn } from '../utils/cn';
@@ -45,7 +45,7 @@ export default function MatchesPage({ games, currentGameId, onLoadGame, onNewGam
 
   const getGameStatus = (game: GameSession) => {
     const match = game.match;
-    if (!match.started) return t.home_no_roster;
+    if (!match.started) return 'Not started';
     if (match.actions.length === 0) return 'Started';
     
     const totalActions = match.actions.length;
@@ -64,7 +64,7 @@ export default function MatchesPage({ games, currentGameId, onLoadGame, onNewGam
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="flex items-center gap-2 mb-5">
-          <History size={18} className="text-gold-400" />
+          <FileText size={18} className="text-gold-400" />
           <h2 className="text-base font-bold text-white">{t.games_title}</h2>
         </div>
 
