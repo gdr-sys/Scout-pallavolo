@@ -212,6 +212,19 @@ export default function SummaryPage({ stats, match, players, onResetMatch }: Pro
           </div>
         )}
 
+        {/* Metric Formulas */}
+        <div className="bg-surface-800 border border-surface-600/50 rounded-2xl p-4 mb-4">
+          <p className="text-[10px] uppercase tracking-wider text-muted-dark font-bold mb-3">{t.report_formulas_title}</p>
+          <div className="space-y-2 text-[11px] text-muted">
+            <p><span className="text-gold-400 font-bold">Eff%</span>: {t.report_formula_efficiency}</p>
+            <p><span className="text-gold-400 font-bold">Pos%</span>: {t.report_formula_positivity}</p>
+            <p><span className="text-gold-400 font-bold">SR%</span>: {t.report_formula_success_rate}</p>
+            <p><span className="text-gold-400 font-bold">ER%</span>: {t.report_formula_error_rate}</p>
+            <p><span className="text-gold-400 font-bold">NE%</span>: {t.report_formula_net_efficiency}</p>
+            <p className="text-[10px] text-muted-dark mt-2 italic">{t.report_formula_note}</p>
+          </div>
+        </div>
+
         {/* Reset button */}
         <div className="pt-4 border-t border-surface-600/50">
           <button

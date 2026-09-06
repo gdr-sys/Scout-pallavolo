@@ -31,22 +31,25 @@ interface ActionModalProps {
   awayTeam: string;
   currentHomeScore: number;
   currentAwayScore: number;
+  showScoreStep: boolean;
 }
 
 function ActionModal({
   isOpen, onClose, onComplete, players, starters, liberos, 
-  actionType, homeTeam, awayTeam, currentHomeScore, currentAwayScore
+  actionType, homeTeam, awayTeam, currentHomeScore, currentAwayScore, showScoreStep
 }: ActionModalProps) {
   const { t } = useI18n();
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
-  const [showScoreStep, setShowScoreStep] = useState(false);
   
-  // Auto-advance to score step for ++ or = quality
+  // Auto-advance to score step for ++ or = quality (but NOT for DIF or RIC)
   useEffect(() => {
     if (isOpen && selectedPlayer && (actionType.quality === '++' || actionType.quality === '=')) {
-      setShowScoreStep(true);
+      // Don't auto-advance for Defense or Reception - they can't score
+      if (actionType.fundamental !== 'DIF' && actionType.fundamental !== 'RIC') {
+        onComplete(selectedPlayer, null);
+      }
     }
-  }, [isOpen, selectedPlayer, actionType.quality]);
+  }, [isOpen, selectedPlayer, actionType.quality, actionType.fundamental, onComplete]);
 
   if (!isOpen) return null;
 
@@ -57,11 +60,12 @@ function ActionModal({
     return { starters: starterPlayers, liberos: liberoPlayers, bench: benchPlayers };
   }, [players, starters, liberos]);
 
-  // Quality determines if we need score step
-  const needsScoreStep = actionType.quality === '++' || actionType.quality === '=';
+  // Quality determines if we need score step (but NOT for DIF or RIC)
+  const needsScoreStep = showScoreStep && (actionType.quality === '++' || actionType.quality === '=') && 
+    actionType.fundamental !== 'DIF' && actionType.fundamental !== 'RIC';
 
   // Step 1: Select Player
-  if (!showScoreStep) {
+  if (!needsScoreStep) {
     return (
       <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div className="bg-surface-800 border border-surface-500 rounded-2xl p-6 w-full max-w-md animate-scale-in">
@@ -89,9 +93,7 @@ function ActionModal({
                       key={player.id}
                       onClick={() => {
                         setSelectedPlayer(player.id);
-                        if (!needsScoreStep) {
-                          onComplete(player.id, null);
-                        }
+                        onComplete(player.id, null);
                       }}
                       className={cn(
                         "p-3 rounded-xl text-center transition-all border-2",
@@ -123,9 +125,7 @@ function ActionModal({
                       key={player.id}
                       onClick={() => {
                         setSelectedPlayer(player.id);
-                        if (!needsScoreStep) {
-                          onComplete(player.id, null);
-                        }
+                        onComplete(player.id, null);
                       }}
                       className={cn(
                         "p-3 rounded-xl text-center transition-all border-2",
@@ -160,9 +160,7 @@ function ActionModal({
                       key={player.id}
                       onClick={() => {
                         setSelectedPlayer(player.id);
-                        if (!needsScoreStep) {
-                          onComplete(player.id, null);
-                        }
+                        onComplete(player.id, null);
                       }}
                       className={cn(
                         "p-3 rounded-xl text-center transition-all border-2",
@@ -181,24 +179,12 @@ function ActionModal({
               </div>
             )}
           </div>
-          
-          {/* Next button for actions that need score step */}
-          {needsScoreStep && selectedPlayer && (
-            <div className="mt-4 pt-4 border-t border-surface-600/30">
-              <button
-                onClick={() => setShowScoreStep(true)}
-                className="w-full py-4 rounded-xl bg-gold-400/15 border border-gold-400/30 text-gold-400 font-extrabold text-lg hover:bg-gold-400/20 transition-colors"
-              >
-                {t.wizard_next}
-              </button>
-            </div>
-          )}
         </div>
       </div>
     );
   }
 
-  // Step 2: Select Score (only for ++ or =)
+  // Step 2: Select Score (only for ++ or = and NOT for DIF or RIC)
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-surface-800 border border-surface-500 rounded-2xl p-6 w-full max-w-md animate-scale-in">
@@ -312,9 +298,10 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
   const currentScore = match.scores[match.currentSet - 1] || { home: 0, away: 0 };
 
   // Handle action recording - NEW 3-CLICK FLOW
-  // Click 1: Action button → Opens modal
-  // Click 2: Player → Selects player (auto-advances if needs score)
-  // Click 3: Score option (or auto-completes if + or -)
+  // Click 1: Action button opens modal
+  // Click 2: Player selects player (auto-completes if no score step needed)
+  // Click 3: Score option (only for ++ and = on ATT, BAT, MUR)
+  // Note: Defense (DIF) and Reception (RIC) never show score modal
   const handleAction = useCallback((fundamental: Fundamental, quality: Quality) => {
     setPendingAction({ fundamental, quality });
     setShowActionModal(true);
@@ -519,6 +506,14 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
         </span>
       </button>
     );
+  };
+
+  // Determine if action should show score step
+  const shouldShowScoreStep = (fundamental: Fundamental, quality: Quality) => {
+    // Only show score step for ++ or = on ATT, BAT, MUR
+    // DIF and RIC never show score step
+    return (quality === '++' || quality === '=') && 
+           fundamental !== 'DIF' && fundamental !== 'RIC';
   };
 
   return (
@@ -795,6 +790,7 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
           awayTeam={match.info.awayTeam}
           currentHomeScore={currentScore.home}
           currentAwayScore={currentScore.away}
+          showScoreStep={shouldShowScoreStep(pendingAction.fundamental, pendingAction.quality)}
         />
       )}
 
