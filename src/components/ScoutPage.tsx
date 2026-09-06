@@ -5,7 +5,7 @@ import { useI18n } from '../i18n/context';
 import { useSettings } from '../contexts/SettingsContext';
 import { cn } from '../utils/cn';
 import { triggerHaptic } from '../utils/haptic';
-import { Undo2, Plus, Star, Crosshair, RotateCcw, Shield, X, Check } from 'lucide-react';
+import { Undo2, Plus, Star, Crosshair, RotateCcw, Shield, X, Check, User, Hash } from 'lucide-react';
 import LiveStatsBar from './LiveStatsBar';
 import TimeoutTracker from './TimeoutTracker';
 import SubstitutionPanel from './SubstitutionPanel';
@@ -18,169 +18,230 @@ interface Props {
   onScoreChange: (setIdx: number, team: 'home' | 'away', delta: number) => void;
 }
 
-// Score update modal component
-interface ScoreModalProps {
+// Combined Action Modal - Player selection + Score update in one flow
+interface ActionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onScore: (team: 'home' | 'away' | null) => void;
-  currentHome: number;
-  currentAway: number;
-  homeTeam: string;
-  awayTeam: string;
-}
-
-function ScoreModal({ isOpen, onClose, onScore, currentHome, currentAway, homeTeam, awayTeam }: ScoreModalProps) {
-  const { t } = useI18n();
-  
-  if (!isOpen) return null;
-  
-  return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-surface-800 border border-surface-500 rounded-2xl p-6 max-w-sm w-full animate-scale-in">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-white">{t.scout_point_home} / {t.scout_point_away}</h3>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-surface-700 hover:bg-surface-600 flex items-center justify-center text-muted transition-colors">
-            <X size={16} />
-          </button>
-        </div>
-        
-        <div className="text-center mb-6">
-          <p className="text-sm text-muted">{t.scout_select_score_team}</p>
-          <div className="flex items-center justify-center gap-4 mt-4">
-            <div className="text-center">
-              <div className="text-3xl font-black text-gold-400">{currentHome}</div>
-              <div className="text-xs font-bold text-muted uppercase">{homeTeam || 'HOME'}</div>
-            </div>
-            <div className="text-2xl font-bold text-muted">VS</div>
-            <div className="text-center">
-              <div className="text-3xl font-black text-gold-400">{currentAway}</div>
-              <div className="text-xs font-bold text-muted uppercase">{awayTeam || 'AWAY'}</div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-3 gap-2">
-          <button
-            onClick={() => onScore('home')}
-            className="py-3 rounded-xl bg-green-500/15 border border-green-500/30 text-green-400 font-extrabold text-sm hover:bg-green-500/20 transition-colors"
-          >
-            +{homeTeam || 'HOME'}
-          </button>
-          <button
-            onClick={() => onScore(null)}
-            className="py-3 rounded-xl bg-surface-700 border border-surface-500 text-muted font-extrabold text-sm hover:bg-surface-600 transition-colors"
-          >
-            {t.scout_no_point}
-          </button>
-          <button
-            onClick={() => onScore('away')}
-            className="py-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 font-extrabold text-sm hover:bg-red-500/20 transition-colors"
-          >
-            +{awayTeam || 'AWAY'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Player selection modal component
-interface PlayerModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSelect: (playerId: string) => void;
+  onComplete: (playerId: string, addPointTo: 'home' | 'away' | null) => void;
   players: Player[];
   starters: string[];
   liberos: string[];
+  actionType: { fundamental: Fundamental; quality: Quality };
+  homeTeam: string;
+  awayTeam: string;
+  currentHomeScore: number;
+  currentAwayScore: number;
 }
 
-function PlayerModal({ isOpen, onClose, onSelect, players, starters, liberos }: PlayerModalProps) {
+function ActionModal({
+  isOpen, onClose, onComplete, players, starters, liberos, 
+  actionType, homeTeam, awayTeam, currentHomeScore, currentAwayScore
+}: ActionModalProps) {
   const { t } = useI18n();
+  const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
+  const [showScoreStep, setShowScoreStep] = useState(false);
   
+  // Auto-advance to score step for ++ or = quality
+  useEffect(() => {
+    if (isOpen && selectedPlayer && (actionType.quality === '++' || actionType.quality === '=')) {
+      setShowScoreStep(true);
+    }
+  }, [isOpen, selectedPlayer, actionType.quality]);
+
   if (!isOpen) return null;
-  
+
   const sortedPlayers = useMemo(() => {
     const starterPlayers = players.filter(p => starters.includes(p.id)).sort((a, b) => a.number - b.number);
     const liberoPlayers = players.filter(p => liberos.includes(p.id)).sort((a, b) => a.number - b.number);
     const benchPlayers = players.filter(p => !starters.includes(p.id) && !liberos.includes(p.id)).sort((a, b) => a.number - b.number);
     return { starters: starterPlayers, liberos: liberoPlayers, bench: benchPlayers };
   }, [players, starters, liberos]);
-  
+
+  // Quality determines if we need score step
+  const needsScoreStep = actionType.quality === '++' || actionType.quality === '=';
+
+  // Step 1: Select Player
+  if (!showScoreStep) {
+    return (
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-surface-800 border border-surface-500 rounded-2xl p-6 w-full max-w-md animate-scale-in">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold text-white">
+              <span className="text-gold-400">{actionType.fundamental}</span> <span className="text-muted">{actionType.quality}</span>
+            </h3>
+            <button onClick={onClose} className="w-10 h-10 rounded-xl bg-surface-700 hover:bg-surface-600 flex items-center justify-center text-muted transition-colors">
+              <X size={20} />
+            </button>
+          </div>
+          
+          <p className="text-sm text-muted mb-4">{t.scout_select_player}</p>
+          
+          <div className="max-h-80 overflow-y-auto">
+            {/* Starters */}
+            {sortedPlayers.starters.length > 0 && (
+              <div className="mb-3">
+                <div className="text-xs font-bold text-gold-400/60 uppercase tracking-wider px-1 py-1 mb-1">
+                  {t.starters}
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {sortedPlayers.starters.map((player) => (
+                    <button
+                      key={player.id}
+                      onClick={() => {
+                        setSelectedPlayer(player.id);
+                        if (!needsScoreStep) {
+                          onComplete(player.id, null);
+                        }
+                      }}
+                      className={cn(
+                        "p-3 rounded-xl text-center transition-all border-2",
+                        selectedPlayer === player.id
+                          ? "border-gold-400 bg-gold-400/10"
+                          : "border-surface-600/30 bg-surface-700/50 hover:bg-surface-600/50"
+                      )}
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-gold-400/20 mx-auto mb-1 flex items-center justify-center">
+                        <span className="text-sm font-extrabold text-gold-400">{player.number}</span>
+                      </div>
+                      <span className="text-xs font-bold text-white truncate block">{player.name}</span>
+                      <Star size={10} className="text-gold-400 mx-auto mt-0.5" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Liberos */}
+            {sortedPlayers.liberos.length > 0 && (
+              <div className="mb-3">
+                <div className="text-xs font-bold text-purple-400/60 uppercase tracking-wider px-1 py-1 mb-1">
+                  {t.liberos}
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {sortedPlayers.liberos.map((player) => (
+                    <button
+                      key={player.id}
+                      onClick={() => {
+                        setSelectedPlayer(player.id);
+                        if (!needsScoreStep) {
+                          onComplete(player.id, null);
+                        }
+                      }}
+                      className={cn(
+                        "p-3 rounded-xl text-center transition-all border-2",
+                        selectedPlayer === player.id
+                          ? "border-purple-400 bg-purple-400/10"
+                          : "border-surface-600/30 bg-surface-700/50 hover:bg-surface-600/50"
+                      )}
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-purple-400/20 mx-auto mb-1 flex items-center justify-center">
+                        <span className="text-sm font-extrabold text-purple-400">{player.number}</span>
+                      </div>
+                      <span className="text-xs font-bold text-white truncate block">{player.name}</span>
+                      <Shield size={10} className="text-purple-400 mx-auto mt-0.5" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Bench */}
+            {sortedPlayers.bench.length > 0 && (
+              <div>
+                {(sortedPlayers.starters.length > 0 || sortedPlayers.liberos.length > 0) && (
+                  <div className="border-t border-surface-600/30 my-2" />
+                )}
+                <div className="text-xs font-bold text-muted-dark uppercase tracking-wider px-1 py-1 mb-1">
+                  {t.starters_bench}
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {sortedPlayers.bench.map((player) => (
+                    <button
+                      key={player.id}
+                      onClick={() => {
+                        setSelectedPlayer(player.id);
+                        if (!needsScoreStep) {
+                          onComplete(player.id, null);
+                        }
+                      }}
+                      className={cn(
+                        "p-3 rounded-xl text-center transition-all border-2",
+                        selectedPlayer === player.id
+                          ? "border-gold-400 bg-gold-400/10"
+                          : "border-surface-600/30 bg-surface-700/50 hover:bg-surface-600/50"
+                      )}
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-surface-700 mx-auto mb-1 flex items-center justify-center">
+                        <span className="text-sm font-extrabold text-muted">{player.number}</span>
+                      </div>
+                      <span className="text-xs font-bold text-muted truncate block">{player.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Next button for actions that need score step */}
+          {needsScoreStep && selectedPlayer && (
+            <div className="mt-4 pt-4 border-t border-surface-600/30">
+              <button
+                onClick={() => setShowScoreStep(true)}
+                className="w-full py-4 rounded-xl bg-gold-400/15 border border-gold-400/30 text-gold-400 font-extrabold text-lg hover:bg-gold-400/20 transition-colors"
+              >
+                {t.wizard_next}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Step 2: Select Score (only for ++ or =)
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-surface-800 border border-surface-500 rounded-2xl p-6 max-w-xs w-full animate-scale-in">
+      <div className="bg-surface-800 border border-surface-500 rounded-2xl p-6 w-full max-w-md animate-scale-in">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-white">{t.scout_select_player}</h3>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-surface-700 hover:bg-surface-600 flex items-center justify-center text-muted transition-colors">
-            <X size={16} />
+          <h3 className="text-xl font-bold text-white">
+            <User size={20} className="inline mr-2 text-gold-400" />
+            {players.find(p => p.id === selectedPlayer)?.name || ''}
+          </h3>
+          <button onClick={onClose} className="w-10 h-10 rounded-xl bg-surface-700 hover:bg-surface-600 flex items-center justify-center text-muted transition-colors">
+            <X size={20} />
           </button>
         </div>
         
-        <div className="max-h-64 overflow-y-auto space-y-1">
-          {sortedPlayers.starters.length > 0 && (
-            <>
-              <div className="text-[9px] font-bold text-gold-400/60 uppercase tracking-wider px-1 py-0.5 sticky top-0 bg-surface-800 z-10">
-                {t.starters}
-              </div>
-              {sortedPlayers.starters.map((player) => (
-                <button
-                  key={player.id}
-                  onClick={() => onSelect(player.id)}
-                  className="w-full px-3 py-2 rounded-xl text-left flex items-center gap-2 hover:bg-surface-700 transition-colors group"
-                >
-                  <span className="w-7 h-7 rounded-lg bg-gold-400/20 flex items-center justify-center text-xs font-extrabold text-gold-400 flex-shrink-0">
-                    {player.number}
-                  </span>
-                  <span className="text-sm font-bold text-white truncate">{player.name}</span>
-                  <Star size={12} className="text-gold-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </button>
-              ))}
-            </>
-          )}
-          
-          {sortedPlayers.liberos.length > 0 && (
-            <>
-              <div className="text-[9px] font-bold text-purple-400/60 uppercase tracking-wider px-1 py-0.5 sticky top-0 bg-surface-800 z-10 mt-2">
-                {t.liberos}
-              </div>
-              {sortedPlayers.liberos.map((player) => (
-                <button
-                  key={player.id}
-                  onClick={() => onSelect(player.id)}
-                  className="w-full px-3 py-2 rounded-xl text-left flex items-center gap-2 hover:bg-surface-700 transition-colors group"
-                >
-                  <span className="w-7 h-7 rounded-lg bg-purple-400/20 flex items-center justify-center text-xs font-extrabold text-purple-400 flex-shrink-0">
-                    {player.number}
-                  </span>
-                  <span className="text-sm font-bold text-white truncate">{player.name}</span>
-                  <Shield size={12} className="text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </button>
-              ))}
-            </>
-          )}
-          
-          {sortedPlayers.bench.length > 0 && (
-            <>
-              {(sortedPlayers.starters.length > 0 || sortedPlayers.liberos.length > 0) && (
-                <div className="border-t border-surface-600/30 my-2" />
-              )}
-              <div className="text-[9px] font-bold text-muted-dark uppercase tracking-wider px-1 py-0.5">
-                {t.starters_bench}
-              </div>
-              {sortedPlayers.bench.map((player) => (
-                <button
-                  key={player.id}
-                  onClick={() => onSelect(player.id)}
-                  className="w-full px-3 py-2 rounded-xl text-left flex items-center gap-2 hover:bg-surface-700 transition-colors group"
-                >
-                  <span className="w-7 h-7 rounded-lg bg-surface-700 flex items-center justify-center text-xs font-extrabold text-muted flex-shrink-0">
-                    {player.number}
-                  </span>
-                  <span className="text-sm font-bold text-muted truncate">{player.name}</span>
-                </button>
-              ))}
-            </>
-          )}
+        <p className="text-sm text-muted mb-4 text-center">{t.scout_select_score_team}</p>
+        
+        <div className="grid grid-cols-3 gap-3">
+          <button
+            onClick={() => onComplete(selectedPlayer || '', 'home')}
+            className="py-6 rounded-2xl bg-green-500/15 border-2 border-green-500/40 text-green-400 font-extrabold text-xl hover:bg-green-500/20 transition-colors"
+          >
+            <div className="text-3xl font-black">{currentHomeScore}</div>
+            <div className="text-xs font-bold uppercase">{homeTeam || 'HOME'}</div>
+          </button>
+          <button
+            onClick={() => onComplete(selectedPlayer || '', null)}
+            className="py-6 rounded-2xl bg-surface-700 border-2 border-surface-500 text-muted font-extrabold text-lg hover:bg-surface-600 transition-colors"
+          >
+            <X size={24} />
+            <div className="text-xs font-bold uppercase mt-1">{t.scout_no_point}</div>
+          </button>
+          <button
+            onClick={() => onComplete(selectedPlayer || '', 'away')}
+            className="py-6 rounded-2xl bg-red-500/15 border-2 border-red-500/40 text-red-400 font-extrabold text-xl hover:bg-red-500/20 transition-colors"
+          >
+            <div className="text-3xl font-black">{currentAwayScore}</div>
+            <div className="text-xs font-bold uppercase">{awayTeam || 'AWAY'}</div>
+          </button>
+        </div>
+        
+        <div className="mt-4 text-center">
+          <div className="text-sm text-muted-dark">
+            {actionType.fundamental} {actionType.quality}
+          </div>
         </div>
       </div>
     </div>
@@ -196,8 +257,7 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
   const [currentRotation, setCurrentRotation] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
   const [swipeState, setSwipeState] = useState<Record<string, 'left' | 'right' | null>>({});
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
-  const [showPlayerModal, setShowPlayerModal] = useState(false);
-  const [showScoreModal, setShowScoreModal] = useState(false);
+  const [showActionModal, setShowActionModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<{ fundamental: Fundamental; quality: Quality } | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const toastTimeout = useRef<number | null>(null);
@@ -249,22 +309,24 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
     toastTimeout.current = window.setTimeout(() => setToast(null), 2000);
   };
 
-  // Handle action recording with new modal flow
-  const handleAction = useCallback((fundamental: Fundamental, quality: Quality, position?: { x: number; y: number }) => {
-    // Open player modal to select player first
+  const currentScore = match.scores[match.currentSet - 1] || { home: 0, away: 0 };
+
+  // Handle action recording - NEW 3-CLICK FLOW
+  // Click 1: Action button → Opens modal
+  // Click 2: Player → Selects player (auto-advances if needs score)
+  // Click 3: Score option (or auto-completes if + or -)
+  const handleAction = useCallback((fundamental: Fundamental, quality: Quality) => {
     setPendingAction({ fundamental, quality });
-    setShowPlayerModal(true);
+    setShowActionModal(true);
     triggerHaptic(20);
   }, []);
 
-  // After player is selected, record the action
-  const handlePlayerSelected = useCallback((playerId: string) => {
-    if (!pendingAction) return;
-    
+  // Handle modal completion
+  const handleActionComplete = useCallback((playerId: string, addPointTo: 'home' | 'away' | null) => {
     const player = players.find((p) => p.id === playerId);
-    if (!player) return;
+    if (!player || !pendingAction) return;
 
-    const posToUse = position || pendingPosition || undefined;
+    // Create action entry
     const entry: ActionEntry = {
       id: generateId(),
       playerId: player.id,
@@ -276,39 +338,32 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
       set: match.currentSet,
       ...(advancedMode ? { 
         rotation: currentRotation,
-        ...(posToUse ? { position: posToUse } : {})
+        ...(pendingPosition ? { position: pendingPosition } : {})
       } : {}),
     };
 
-    // Haptic feedback based on quality
+    // Haptic feedback
     triggerHaptic(pendingAction.quality === '++' ? 50 : pendingAction.quality === '=' ? 80 : 30);
 
+    // Update match with new action
     onUpdate({
       ...match,
       actions: [...match.actions, entry],
     });
 
-    // Clear pending states
+    // If user selected a team for score, update score
+    if (addPointTo) {
+      onScoreChange(match.currentSet - 1, addPointTo, 1);
+    }
+
+    // Reset and close
     setPendingAction(null);
-    setShowPlayerModal(false);
-    setPendingPosition(null);
+    setShowActionModal(false);
     setSelectedPlayer(null);
+    setPendingPosition(null);
     
     showToast(`#${player.number} ${pendingAction.fundamental} ${pendingAction.quality}`);
-    
-    // If quality is ++ or --, show score update modal
-    if (pendingAction.quality === '++' || pendingAction.quality === '=') {
-      setShowScoreModal(true);
-    }
-  }, [pendingAction, players, match, advancedMode, currentRotation, pendingPosition, onUpdate]);
-
-  // Handle score update after action
-  const handleScoreUpdate = useCallback((team: 'home' | 'away' | null) => {
-    setShowScoreModal(false);
-    if (team) {
-      onScoreChange(match.currentSet - 1, team, 1);
-    }
-  }, [match, onScoreChange]);
+  }, [pendingAction, players, match, advancedMode, currentRotation, pendingPosition, onUpdate, onScoreChange]);
 
   const handleUndo = () => {
     if (match.actions.length === 0) return;
@@ -398,8 +453,6 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
     delete touchStartX.current[playerId];
   };
 
-  const currentScore = match.scores[match.currentSet - 1] || { home: 0, away: 0 };
-
   if (!match.started) {
     return (
       <div className="flex-1 flex items-center justify-center p-4">
@@ -423,7 +476,8 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
         onClick={() => {
           setSelectedPlayer(player.id);
           if (pendingAction) {
-            handlePlayerSelected(player.id);
+            // Quick action: if player clicked and action pending, complete it
+            handleActionComplete(player.id, null);
           }
         }}
         onTouchStart={(e) => handleTouchStart(player.id, e)}
@@ -617,7 +671,7 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
                     key={q.key}
                     onClick={() => handleAction(fund.key, q.key)}
                     className={cn(
-                      "py-3.5 rounded-xl font-extrabold text-sm transition-all border",
+                      "py-4 rounded-xl font-extrabold text-lg transition-all border",
                       q.bgColor, q.borderColor, q.color,
                       "hover:opacity-80 active:scale-90"
                     )}
@@ -629,16 +683,16 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
             </div>
           ))}
 
-          {/* Point / Error row - simplified to just show button */}
+          {/* Direct score buttons */}
           <div className="grid grid-cols-2 gap-2 mt-3">
             <button
-              onClick={() => handleScoreChange(match.currentSet - 1, 'home', 1)}
+              onClick={() => onScoreChange(match.currentSet - 1, 'home', 1)}
               className="py-3 rounded-xl bg-green-500/15 border border-green-500/30 text-green-400 font-extrabold text-xs"
             >
               {t.scout_point_home}
             </button>
             <button
-              onClick={() => handleScoreChange(match.currentSet - 1, 'away', 1)}
+              onClick={() => onScoreChange(match.currentSet - 1, 'away', 1)}
               className="py-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 font-extrabold text-xs"
             >
               {t.scout_point_away}
@@ -713,28 +767,26 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
         </div>
       </div>
 
-      {/* Modals */}
-      <PlayerModal
-        isOpen={showPlayerModal}
-        onClose={() => {
-          setShowPlayerModal(false);
-          setPendingAction(null);
-        }}
-        onSelect={handlePlayerSelected}
-        players={players}
-        starters={match.starters || []}
-        liberos={match.liberos || []}
-      />
-      
-      <ScoreModal
-        isOpen={showScoreModal}
-        onClose={() => setShowScoreModal(false)}
-        onScore={handleScoreUpdate}
-        currentHome={currentScore.home}
-        currentAway={currentScore.away}
-        homeTeam={match.info.homeTeam}
-        awayTeam={match.info.awayTeam}
-      />
+      {/* Action Modal - Combined player + score selection */}
+      {pendingAction && (
+        <ActionModal
+          isOpen={showActionModal}
+          onClose={() => {
+            setShowActionModal(false);
+            setPendingAction(null);
+            setSelectedPlayer(null);
+          }}
+          onComplete={handleActionComplete}
+          players={players}
+          starters={match.starters || []}
+          liberos={match.liberos || []}
+          actionType={pendingAction}
+          homeTeam={match.info.homeTeam}
+          awayTeam={match.info.awayTeam}
+          currentHomeScore={currentScore.home}
+          currentAwayScore={currentScore.away}
+        />
+      )}
 
       {/* Toast */}
       {toast && (
