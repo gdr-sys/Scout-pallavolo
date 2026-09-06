@@ -1,8 +1,10 @@
-import { Roster, MatchState, ActionEntry, Fundamental, PlayerStats, Player, AppSettings } from './types';
+import { Roster, MatchState, ActionEntry, Fundamental, PlayerStats, Player, AppSettings, GameSession } from './types';
 
 const ROSTERS_KEY = 'volleyball_scout_rosters';
 const MATCH_KEY = 'volleyball_scout_match';
+const GAMES_KEY = 'volleyball_scout_games';
 const SETTINGS_KEY = 'volleyball_scout_settings';
+const CURRENT_GAME_ID = 'volleyball_scout_current_game_id';
 
 // Roster storage
 export function loadRosters(): Roster[] {
@@ -18,7 +20,7 @@ export function saveRosters(rosters: Roster[]) {
   localStorage.setItem(ROSTERS_KEY, JSON.stringify(rosters));
 }
 
-// Match storage
+// Match storage (legacy - for backward compatibility)
 export function loadMatch(): MatchState | null {
   try {
     const data = localStorage.getItem(MATCH_KEY);
@@ -36,6 +38,78 @@ export function clearMatch() {
   localStorage.removeItem(MATCH_KEY);
 }
 
+// Multiple games storage
+export function loadGames(): GameSession[] {
+  try {
+    const data = localStorage.getItem(GAMES_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveGames(games: GameSession[]) {
+  localStorage.setItem(GAMES_KEY, JSON.stringify(games));
+}
+
+export function getCurrentGameId(): string | null {
+  try {
+    return localStorage.getItem(CURRENT_GAME_ID);
+  } catch {
+    return null;
+  }
+}
+
+export function setCurrentGameId(gameId: string | null) {
+  if (gameId) {
+    localStorage.setItem(CURRENT_GAME_ID, gameId);
+  } else {
+    localStorage.removeItem(CURRENT_GAME_ID);
+  }
+}
+
+export function saveGame(session: GameSession): GameSession {
+  const games = loadGames();
+  const existingIndex = games.findIndex(g => g.id === session.id);
+  const updatedSession = {
+    ...session,
+    updatedAt: Date.now(),
+  };
+  
+  if (existingIndex >= 0) {
+    games[existingIndex] = updatedSession;
+  } else {
+    games.push(updatedSession);
+  }
+  
+  saveGames(games);
+  return updatedSession;
+}
+
+export function deleteGame(gameId: string): boolean {
+  const games = loadGames();
+  const index = games.findIndex(g => g.id === gameId);
+  if (index >= 0) {
+    games.splice(index, 1);
+    saveGames(games);
+    return true;
+  }
+  return false;
+}
+
+export function loadCurrentGame(): GameSession | null {
+  const currentId = getCurrentGameId();
+  if (!currentId) return null;
+  
+  const games = loadGames();
+  return games.find(g => g.id === currentId) || null;
+}
+
+export function getGameById(gameId: string): GameSession | null {
+  const games = loadGames();
+  return games.find(g => g.id === gameId) || null;
+}
+
 // Settings storage
 export function loadSettings(): AppSettings {
   try {
@@ -51,9 +125,10 @@ export function saveSettings(settings: AppSettings) {
 }
 
 // Default match
-export function createDefaultMatch(): MatchState {
+export function createDefaultMatch(rosterId?: string): MatchState {
   return {
-    info: { homeTeam: '', awayTeam: '', date: '', location: '', rosterId: '' },
+    id: generateId(),
+    info: { homeTeam: '', awayTeam: '', date: '', location: '', rosterId: rosterId || '' },
     actions: [],
     scores: [{ home: 0, away: 0 }],
     currentSet: 1,
@@ -62,6 +137,19 @@ export function createDefaultMatch(): MatchState {
     liberos: [],
     substitutions: [],
     timeouts: [],
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+}
+
+export function createNewGameSession(rosterId?: string): GameSession {
+  const match = createDefaultMatch(rosterId);
+  return {
+    id: generateId(),
+    match,
+    players: [],
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
   };
 }
 

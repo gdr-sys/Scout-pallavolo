@@ -15,7 +15,7 @@ interface Props {
 }
 
 export default function SummaryPage({ stats, match, players, onResetMatch }: Props) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { advancedMode } = useSettings();
   const [copied, setCopied] = useState(false);
 
@@ -47,7 +47,7 @@ export default function SummaryPage({ stats, match, players, onResetMatch }: Pro
   );
 
   const handleWhatsAppCopy = async () => {
-    const text = generateWhatsAppText(stats, match);
+    const text = generateWhatsAppText(stats, match, language);
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -63,6 +63,14 @@ export default function SummaryPage({ stats, match, players, onResetMatch }: Pro
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleExportPDF = () => {
+    exportPDF(stats, match, language);
+  };
+
+  const handleExportCSV = () => {
+    exportCSV(stats, match, language);
   };
 
   return (
@@ -106,7 +114,7 @@ export default function SummaryPage({ stats, match, players, onResetMatch }: Pro
         {/* MVP */}
         {mvp && mvp.totals.pp > 0 && (
           <div className="bg-gradient-to-r from-gold-400/10 to-gold-400/5 border border-gold-400/20 rounded-2xl p-4 mb-4">
-            <p className="text-[10px] uppercase tracking-wider text-gold-400/70 font-bold mb-2">⭐ {t.summary_mvp}</p>
+            <p className="text-[10px] uppercase tracking-wider text-gold-400/70 font-bold mb-2">\u2b50 {t.summary_mvp}</p>
             <div className="flex items-center gap-3">
               <span className="w-10 h-10 rounded-xl bg-gold-400/15 flex items-center justify-center text-lg font-bold text-gold-400">
                 {mvp.playerNumber}
@@ -134,7 +142,7 @@ export default function SummaryPage({ stats, match, players, onResetMatch }: Pro
               <p className="text-white font-extrabold text-lg">{teamTotals.p}</p>
             </div>
             <div className="bg-yellow-500/10 rounded-xl p-2 text-center">
-              <span className="text-yellow-400 text-[10px] font-bold">–</span>
+              <span className="text-yellow-400 text-[10px] font-bold">\u2013</span>
               <p className="text-white font-extrabold text-lg">{teamTotals.m}</p>
             </div>
             <div className="bg-red-500/10 rounded-xl p-2 text-center">
@@ -153,7 +161,7 @@ export default function SummaryPage({ stats, match, players, onResetMatch }: Pro
           <p className="text-[10px] uppercase tracking-wider text-muted-dark font-bold mb-2">{t.summary_export}</p>
           
           <button
-            onClick={() => exportPDF(stats, match)}
+            onClick={handleExportPDF}
             className="w-full bg-navy-600 hover:bg-navy-500 text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2.5 transition-colors"
           >
             <Download size={18} />
@@ -161,7 +169,7 @@ export default function SummaryPage({ stats, match, players, onResetMatch }: Pro
           </button>
           
           <button
-            onClick={() => exportCSV(stats, match)}
+            onClick={handleExportCSV}
             className="w-full bg-surface-700 hover:bg-surface-600 border border-surface-500 text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2.5 transition-colors"
           >
             <FileSpreadsheet size={18} />

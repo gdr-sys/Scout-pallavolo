@@ -66,6 +66,7 @@ export interface TimeoutRecord {
 }
 
 export interface MatchState {
+  id: string;
   info: MatchInfo;
   actions: ActionEntry[];
   scores: SetScore[];
@@ -75,6 +76,13 @@ export interface MatchState {
   liberos?: string[];       // player IDs of 1-2 liberos
   substitutions?: Substitution[];
   timeouts?: TimeoutRecord[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface SavedGame {
+  match: MatchState;
+  players: Player[];
 }
 
 export type TabId = 'scout' | 'home' | 'stats' | 'roster' | 'summary';
@@ -113,4 +121,12 @@ export interface FavoriteAction {
 export interface AppSettings {
   advancedMode: boolean;
   language: string;
+}
+
+export interface GameSession {
+  id: string;
+  match: MatchState;
+  players: Player[];
+  createdAt: number;
+  updatedAt: number;
 }

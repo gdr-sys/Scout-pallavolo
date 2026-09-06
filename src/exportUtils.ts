@@ -2,7 +2,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { PlayerStats, MatchState, Fundamental, Player } from './types';
 
-const FUND_LABELS: Record<Fundamental, string> = {
+const FUND_LABELS_IT: Record<Fundamental, string> = {
   ATT: 'Attacco',
   DIF: 'Difesa',
   MUR: 'Muro',
@@ -10,15 +10,69 @@ const FUND_LABELS: Record<Fundamental, string> = {
   RIC: 'Ricezione',
 };
 
-export function exportCSV(stats: PlayerStats[], match: MatchState) {
+const FUND_LABELS_EN: Record<Fundamental, string> = {
+  ATT: 'Attack',
+  DIF: 'Defense',
+  MUR: 'Block',
+  BAT: 'Serve',
+  RIC: 'Reception',
+};
+
+const ROLE_LABELS_IT: Record<string, string> = {
+  'Palleggiatore': 'Palleggiatore',
+  'Opposto': 'Opposto',
+  'Schiacciatore': 'Schiacciatore',
+  'Centrale': 'Centrale',
+  'Libero': 'Libero',
+};
+
+const ROLE_LABELS_EN: Record<string, string> = {
+  'Palleggiatore': 'Setter',
+  'Opposto': 'Opposite',
+  'Schiacciatore': 'Outside Hitter',
+  'Centrale': 'Middle Blocker',
+  'Libero': 'Libero',
+};
+
+function getFundLabels(lang: string = 'en'): Record<Fundamental, string> {
+  return lang === 'it' ? FUND_LABELS_IT : FUND_LABELS_EN;
+}
+
+function getRoleLabels(lang: string = 'en'): Record<string, string> {
+  return lang === 'it' ? ROLE_LABELS_IT : ROLE_LABELS_EN;
+}
+
+const QUALITY_LABELS_IT = {
+  '++': 'Eccellente',
+  '+': 'Positivo',
+  '-': 'Negativo',
+  '=': 'Errore',
+};
+
+const QUALITY_LABELS_EN = {
+  '++': 'Excellent',
+  '+': 'Positive',
+  '-': 'Negative',
+  '=': 'Error',
+};
+
+function getQualityLabels(lang: string = 'en') {
+  return lang === 'it' ? QUALITY_LABELS_IT : QUALITY_LABELS_EN;
+}
+
+export function exportCSV(stats: PlayerStats[], match: MatchState, lang: string = 'en') {
+  const fundLabels = getFundLabels(lang);
+  const roleLabels = getRoleLabels(lang);
+  const qualityLabels = getQualityLabels(lang);
+
   const header = [
-    'N°', 'Nome', 'Ruolo',
-    'ATT++', 'ATT+', 'ATT-', 'ATT=', 'ATT Tot', 'ATT Eff%', 'ATT Pos%',
-    'DIF++', 'DIF+', 'DIF-', 'DIF=', 'DIF Tot', 'DIF Eff%', 'DIF Pos%',
-    'MUR++', 'MUR+', 'MUR-', 'MUR=', 'MUR Tot', 'MUR Eff%', 'MUR Pos%',
-    'BAT++', 'BAT+', 'BAT-', 'BAT=', 'BAT Tot', 'BAT Eff%', 'BAT Pos%',
-    'RIC++', 'RIC+', 'RIC-', 'RIC=', 'RIC Tot', 'RIC Eff%', 'RIC Pos%',
-    'TOT++', 'TOT+', 'TOT-', 'TOT=', 'TOTALE',
+    'No.', 'Name', 'Role',
+    `${fundLabels.ATT}++`, `${fundLabels.ATT}+`, `${fundLabels.ATT}-`, `${fundLabels.ATT}=`, `${fundLabels.ATT} Tot`, `${fundLabels.ATT} Eff%`, `${fundLabels.ATT} Pos%`,
+    `${fundLabels.DIF}++`, `${fundLabels.DIF}+`, `${fundLabels.DIF}-`, `${fundLabels.DIF}=`, `${fundLabels.DIF} Tot`, `${fundLabels.DIF} Eff%`, `${fundLabels.DIF} Pos%`,
+    `${fundLabels.MUR}++`, `${fundLabels.MUR}+`, `${fundLabels.MUR}-`, `${fundLabels.MUR}=`, `${fundLabels.MUR} Tot`, `${fundLabels.MUR} Eff%`, `${fundLabels.MUR} Pos%`,
+    `${fundLabels.BAT}++`, `${fundLabels.BAT}+`, `${fundLabels.BAT}-`, `${fundLabels.BAT}=`, `${fundLabels.BAT} Tot`, `${fundLabels.BAT} Eff%`, `${fundLabels.BAT} Pos%`,
+    `${fundLabels.RIC}++`, `${fundLabels.RIC}+`, `${fundLabels.RIC}-`, `${fundLabels.RIC}=`, `${fundLabels.RIC} Tot`, `${fundLabels.RIC} Eff%`, `${fundLabels.RIC} Pos%`,
+    'TOT++', 'TOT+', 'TOT-', 'TOT=', 'Total',
   ];
 
   const fundamentals: Fundamental[] = ['ATT', 'DIF', 'MUR', 'BAT', 'RIC'];
@@ -29,7 +83,7 @@ export function exportCSV(stats: PlayerStats[], match: MatchState) {
       return [fs.pp, fs.p, fs.m, fs.eq, fs.total, fs.efficiency, fs.positivity];
     });
     return [
-      s.playerNumber, s.playerName, s.playerRole,
+      s.playerNumber, s.playerName, roleLabels[s.playerRole] || s.playerRole,
       ...fundCols,
       s.totals.pp, s.totals.p, s.totals.m, s.totals.eq, s.totals.total,
     ];
@@ -43,13 +97,18 @@ export function exportCSV(stats: PlayerStats[], match: MatchState) {
   link.click();
 }
 
-export function exportPDF(stats: PlayerStats[], match: MatchState) {
+export function exportPDF(stats: PlayerStats[], match: MatchState, lang: string = 'en') {
   const doc = new jsPDF({ orientation: 'landscape' });
   const fundamentals: Fundamental[] = ['ATT', 'DIF', 'MUR', 'BAT', 'RIC'];
+  const fundLabels = getFundLabels(lang);
+  const roleLabels = getRoleLabels(lang);
+
+  const reportTitle = lang === 'it' ? 'Report Partita' : 'Match Report';
+  const summaryTitle = lang === 'it' ? 'Riepilogo Generale' : 'General Summary';
 
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.text('Report Partita', 14, 15);
+  doc.text(reportTitle, 14, 15);
 
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
@@ -60,13 +119,13 @@ export function exportPDF(stats: PlayerStats[], match: MatchState) {
     .join(' | ');
   doc.text(scoreText, 14, 30);
 
-  if (match.info.date) doc.text(`Data: ${match.info.date}`, 14, 37);
-  if (match.info.location) doc.text(`Luogo: ${match.info.location}`, 100, 37);
+  if (match.info.date) doc.text(`Date: ${match.info.date}`, 14, 37);
+  if (match.info.location) doc.text(`Location: ${match.info.location}`, 100, 37);
 
   let startY = 45;
 
   fundamentals.forEach((fund) => {
-    const head = [['N°', 'Nome', '++', '+', '-', '=', 'Tot', 'Eff%', 'Pos%']];
+    const head = [['No.', 'Name', '++', '+', '-', '=', 'Tot', 'Eff%', 'Pos%']];
     const body = stats
       .filter((s) => s.fundamentals[fund].total > 0)
       .map((s) => {
@@ -78,7 +137,7 @@ export function exportPDF(stats: PlayerStats[], match: MatchState) {
 
     doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
-    doc.text(FUND_LABELS[fund], 14, startY);
+    doc.text(fundLabels[fund], 14, startY);
 
     autoTable(doc, {
       startY: startY + 3,
@@ -99,12 +158,12 @@ export function exportPDF(stats: PlayerStats[], match: MatchState) {
 
   doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
-  doc.text('Riepilogo Generale', 14, startY);
+  doc.text(summaryTitle, 14, startY);
 
-  const totHead = [['N°', 'Nome', 'Ruolo', '++', '+', '-', '=', 'Totale']];
+  const totHead = [['No.', 'Name', 'Role', '++', '+', '-', '=', 'Total']];
   const totBody = stats
     .filter((s) => s.totals.total > 0)
-    .map((s) => [s.playerNumber, s.playerName, s.playerRole, s.totals.pp, s.totals.p, s.totals.m, s.totals.eq, s.totals.total]);
+    .map((s) => [s.playerNumber, s.playerName, roleLabels[s.playerRole] || s.playerRole, s.totals.pp, s.totals.p, s.totals.m, s.totals.eq, s.totals.total]);
 
   autoTable(doc, {
     startY: startY + 3,
@@ -120,16 +179,26 @@ export function exportPDF(stats: PlayerStats[], match: MatchState) {
 }
 
 // WhatsApp-friendly plain text export
-export function generateWhatsAppText(stats: PlayerStats[], match: MatchState): string {
+export function generateWhatsAppText(stats: PlayerStats[], match: MatchState, lang: string = 'en'): string {
   const lines: string[] = [];
+  const fundLabels = getFundLabels(lang);
+  const qualityLabels = getQualityLabels(lang);
   
-  lines.push(`🏐 *${match.info.homeTeam} vs ${match.info.awayTeam}*`);
-  if (match.info.date) lines.push(`📅 ${match.info.date}`);
-  if (match.info.location) lines.push(`📍 ${match.info.location}`);
+  const matchLabel = lang === 'it' ? 'Partita' : 'Match';
+  const scoresLabel = lang === 'it' ? 'Punteggi' : 'Scores';
+  const statsLabel = lang === 'it' ? 'Statistiche Chiave' : 'Key Statistics';
+  const mvpLabel = lang === 'it' ? 'MVP' : 'MVP';
+  const effLabel = lang === 'it' ? 'Eff' : 'Eff';
+  const posLabel = lang === 'it' ? 'Pos' : 'Pos';
+  const actionsLabel = lang === 'it' ? 'azioni' : 'actions';
+
+  lines.push(`\ud83c\udfd0 *${match.info.homeTeam} vs ${match.info.awayTeam}*`);
+  if (match.info.date) lines.push(`\ud83d\udcc5 ${match.info.date}`);
+  if (match.info.location) lines.push(`\ud83d\udccd ${match.info.location}`);
   lines.push('');
   
   // Scores
-  lines.push('*📊 Punteggi:*');
+  lines.push(`*\ud83d\udcca ${scoresLabel}:*`);
   match.scores.forEach((s, i) => {
     lines.push(`  Set ${i + 1}: ${s.home} - ${s.away}`);
   });
@@ -137,21 +206,21 @@ export function generateWhatsAppText(stats: PlayerStats[], match: MatchState): s
 
   // Key stats per player
   const fundamentals: Fundamental[] = ['ATT', 'RIC', 'BAT', 'MUR', 'DIF'];
-  const fundEmoji: Record<Fundamental, string> = { ATT: '⚡', RIC: '🛡️', BAT: '🏐', MUR: '🧱', DIF: '🤸' };
+  const fundEmoji: Record<Fundamental, string> = { ATT: '\u26a1', RIC: '\ud83d\udee1\ufe0f', BAT: '\ud83c\udfd0', MUR: '\ud83e\uddf1', DIF: '\ud83e\udd38' };
   
   const activePlayers = stats.filter(s => s.totals.total > 0).sort((a, b) => b.totals.total - a.totals.total);
   
   if (activePlayers.length > 0) {
-    lines.push('*📈 Statistiche Chiave:*');
+    lines.push(`*\ud83d\udcc8 ${statsLabel}:*`);
     lines.push('');
     
     for (const s of activePlayers) {
-      lines.push(`*#${s.playerNumber} ${s.playerName}* (${s.totals.total} azioni)`);
+      lines.push(`*#${s.playerNumber} ${s.playerName}* (${s.totals.total} ${actionsLabel})`);
       
       for (const f of fundamentals) {
         const fs = s.fundamentals[f];
         if (fs.total === 0) continue;
-        lines.push(`  ${fundEmoji[f]} ${f}: *Eff ${fs.efficiency}%* | *Pos ${fs.positivity}%* (${fs.total})`);
+        lines.push(`  ${fundEmoji[f]} ${fundLabels[f]}: *${effLabel} ${fs.efficiency}%* | *${posLabel} ${fs.positivity}%* (${fs.total})`);
       }
       lines.push('');
     }
@@ -160,7 +229,8 @@ export function generateWhatsAppText(stats: PlayerStats[], match: MatchState): s
   // MVP
   const mvp = stats.reduce((best, s) => (s.totals.pp > (best?.totals.pp || 0) ? s : best), stats[0]);
   if (mvp && mvp.totals.pp > 0) {
-    lines.push(`⭐ *MVP:* #${mvp.playerNumber} ${mvp.playerName} (${mvp.totals.pp}++ su ${mvp.totals.total})`);
+    const mvpText = lang === 'it' ? 'MVP della partita' : 'Match MVP';
+    lines.push(`\u2b50 *${mvpLabel}: ${mvpText}* #${mvp.playerNumber} ${mvp.playerName} (${mvp.totals.pp}++ su ${mvp.totals.total})`);
   }
 
   return lines.join('\n');

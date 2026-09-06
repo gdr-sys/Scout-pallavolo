@@ -17,6 +17,26 @@ export type TranslationKeys = {
   nav_stats: string;
   nav_roster: string;
   nav_report: string;
+  // Game management
+  games_title: string;
+  games_no_games: string;
+  games_no_games_desc: string;
+  games_new_game: string;
+  games_load: string;
+  games_delete: string;
+  games_delete_confirm: string;
+  games_current: string;
+  // Wizard steps
+  wizard_step: string;
+  wizard_step_teams: string;
+  wizard_step_details: string;
+  wizard_step_roster: string;
+  wizard_step_starters: string;
+  wizard_step_liberos: string;
+  wizard_step_ready: string;
+  wizard_next: string;
+  wizard_back: string;
+  wizard_finish: string;
   create: string;
   save: string;
   cancel: string;
@@ -146,6 +166,16 @@ export type TranslationKeys = {
   auth_guest: string;
   auth_synced: string;
   auth_local_only: string;
+  // Report translations
+  report_title: string;
+  report_match_info: string;
+  report_team_stats: string;
+  report_player_stats: string;
+  report_summary: string;
+  report_mvp: string;
+  report_total_actions: string;
+  report_efficiency: string;
+  report_positivity: string;
 };
 
 const it: TranslationKeys = {
@@ -283,6 +313,36 @@ const it: TranslationKeys = {
   player_in: 'Giocatore che entra',
   player_out: 'Giocatore che esce',
   confirm_sub: 'Conferma Cambio',
+  // Game management
+  games_title: 'Partite Salvate',
+  games_no_games: 'Nessuna partita salvata',
+  games_no_games_desc: 'Inizia una nuova partita per salvarla',
+  games_new_game: 'Nuova Partita',
+  games_load: 'Carica',
+  games_delete: 'Elimina',
+  games_delete_confirm: 'Sei sicuro di voler eliminare questa partita?',
+  games_current: 'Corrente',
+  // Wizard steps
+  wizard_step: 'Passo',
+  wizard_step_teams: 'Squadre',
+  wizard_step_details: 'Dettagli',
+  wizard_step_roster: 'Rosa',
+  wizard_step_starters: 'Titolari',
+  wizard_step_liberos: 'Liberi',
+  wizard_step_ready: 'Pronto',
+  wizard_next: 'Avanti',
+  wizard_back: 'Indietro',
+  wizard_finish: 'Fine',
+  // Report translations
+  report_title: 'Rapporto Partita',
+  report_match_info: 'Informazioni Partita',
+  report_team_stats: 'Statistiche Squadra',
+  report_player_stats: 'Statistiche Giocatore',
+  report_summary: 'Riepilogo',
+  report_mvp: 'MVP',
+  report_total_actions: 'Azioni Totali',
+  report_efficiency: 'Efficienza',
+  report_positivity: 'Positività',
 };
 
 const en: TranslationKeys = {
@@ -420,6 +480,36 @@ const en: TranslationKeys = {
   player_in: 'Player entering',
   player_out: 'Player leaving',
   confirm_sub: 'Confirm Sub',
+  // Game management
+  games_title: 'Saved Games',
+  games_no_games: 'No saved games',
+  games_no_games_desc: 'Start a new match to save it',
+  games_new_game: 'New Game',
+  games_load: 'Load',
+  games_delete: 'Delete',
+  games_delete_confirm: 'Are you sure you want to delete this game?',
+  games_current: 'Current',
+  // Wizard steps
+  wizard_step: 'Step',
+  wizard_step_teams: 'Teams',
+  wizard_step_details: 'Details',
+  wizard_step_roster: 'Roster',
+  wizard_step_starters: 'Starters',
+  wizard_step_liberos: 'Liberos',
+  wizard_step_ready: 'Ready',
+  wizard_next: 'Next',
+  wizard_back: 'Back',
+  wizard_finish: 'Finish',
+  // Report translations
+  report_title: 'Match Report',
+  report_match_info: 'Match Information',
+  report_team_stats: 'Team Statistics',
+  report_player_stats: 'Player Statistics',
+  report_summary: 'Summary',
+  report_mvp: 'MVP',
+  report_total_actions: 'Total Actions',
+  report_efficiency: 'Efficiency',
+  report_positivity: 'Positivity',
 };
 
 const es: TranslationKeys = {

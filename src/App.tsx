@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { TabId, Roster, MatchState } from './types';
+import { TabId, Roster, MatchState, Player, GameSession } from './types';
 import {
   loadRosters, saveRosters,
   loadMatch, saveMatch, clearMatch,
-  createDefaultMatch, calculatePlayerStats,
+  createDefaultMatch, calculatePlayerStats, generateId,
+  loadGames, saveGames, loadCurrentGame, saveGame, deleteGame, setCurrentGameId, getCurrentGameId, createNewGameSession,
 } from './store';
 import { useI18n } from './i18n/context';
 import { useAuth } from './firebase/context';
@@ -14,7 +15,8 @@ import StatsPage from './components/StatsPage';
 import RosterPage from './components/RosterPage';
 import SummaryPage from './components/SummaryPage';
 import SettingsModal from './components/SettingsModal';
-import { Home, Crosshair, BarChart3, Users, FileText, Minus, Plus, Settings, Cloud } from 'lucide-react';
+import GameListModal from './components/GameListModal';
+import { Home, Crosshair, BarChart3, Users, FileText, Minus, Plus, Settings, Cloud, History, PlayCircle } from 'lucide-react';
 
 export default function App() {
   const { t } = useI18n();
@@ -22,9 +24,27 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState<TabId>('home');
   const [rosters, setRosters] = useState<Roster[]>(() => loadRosters());
-  const [match, setMatch] = useState<MatchState>(() => loadMatch() || createDefaultMatch());
+  const [games, setGames] = useState<GameSession[]>(() => loadGames());
+  const [currentGame, setCurrentGame] = useState<GameSession | null>(() => {
+    const saved = loadCurrentGame();
+    if (saved) return saved;
+    // Legacy fallback
+    const legacyMatch = loadMatch();
+    if (legacyMatch) {
+      return {
+        id: 'legacy',
+        match: legacyMatch,
+        players: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+    }
+    return null;
+  });
   const [scorePulse, setScorePulse] = useState<'home' | 'away' | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [gameListOpen, setGameListOpen] = useState(false);
+  const match = currentGame?.match || createDefaultMatch();
 
   // Sync rosters from cloud when user logs in
   useEffect(() => {
@@ -33,10 +53,18 @@ export default function App() {
     }
   }, [user, cloudRosters]);
 
-  // Sync match from cloud when user logs in
+  // Sync games from cloud when user logs in
   useEffect(() => {
     if (user && cloudMatch) {
-      setMatch(cloudMatch);
+      const newGame = {
+        id: 'cloud',
+        match: cloudMatch,
+        players: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      setCurrentGame(newGame);
+      setCurrentGameId('cloud');
     }
   }, [user, cloudMatch]);
 
@@ -45,21 +73,31 @@ export default function App() {
     saveRosters(rosters);
   }, [rosters]);
 
-  // Persist match locally
+  // Persist games locally
   useEffect(() => {
-    saveMatch(match);
-  }, [match]);
+    if (currentGame) {
+      saveGame(currentGame);
+      setCurrentGameId(currentGame.id);
+    }
+  }, [currentGame]);
 
   // Get players from selected roster
-  const players = useMemo(() => {
+  const rosterPlayers = useMemo(() => {
     const roster = rosters.find((r) => r.id === match.info.rosterId);
     return roster?.players || [];
   }, [rosters, match.info.rosterId]);
 
+  // Update current game players when roster changes
+  useEffect(() => {
+    if (currentGame && rosterPlayers.length > 0) {
+      setCurrentGame({ ...currentGame, players: rosterPlayers });
+    }
+  }, [rosterPlayers, currentGame]);
+
   // Calculate stats
   const stats = useMemo(() => {
-    return calculatePlayerStats(match.actions, players);
-  }, [match.actions, players]);
+    return calculatePlayerStats(match.actions, rosterPlayers);
+  }, [match.actions, rosterPlayers]);
 
   const handleSaveRosters = useCallback((updated: Roster[]) => {
     setRosters(updated);
@@ -69,46 +107,82 @@ export default function App() {
   }, [user, saveRostersToCloud]);
 
   const handleStartMatch = useCallback((updated: MatchState) => {
-    setMatch(updated);
+    const newGame: GameSession = {
+      id: generateId(),
+      match: updated,
+      players: rosterPlayers,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    setCurrentGame(newGame);
+    setCurrentGameId(newGame.id);
     setActiveTab('scout');
     if (user && !user.isAnonymous) {
       saveMatchToCloud(updated);
     }
-  }, [user, saveMatchToCloud]);
+  }, [user, saveMatchToCloud, rosterPlayers]);
 
   const handleUpdateMatch = useCallback((updated: MatchState) => {
-    setMatch(updated);
-    if (user && !user.isAnonymous) {
-      saveMatchToCloud(updated);
-    }
-  }, [user, saveMatchToCloud]);
-
-  const handleScoreChange = useCallback((setIdx: number, team: 'home' | 'away', delta: number) => {
-    setMatch((prev) => {
-      const newScores = [...prev.scores];
-      if (!newScores[setIdx]) return prev;
-      const score = { ...newScores[setIdx] };
-      score[team] = Math.max(0, score[team] + delta);
-      newScores[setIdx] = score;
-      const updated = { ...prev, scores: newScores };
+    if (currentGame) {
+      const newGame = {
+        ...currentGame,
+        match: updated,
+        players: rosterPlayers,
+        updatedAt: Date.now(),
+      };
+      setCurrentGame(newGame);
       if (user && !user.isAnonymous) {
         saveMatchToCloud(updated);
       }
-      return updated;
-    });
+    }
+  }, [user, saveMatchToCloud, currentGame, rosterPlayers]);
+
+  const handleScoreChange = useCallback((setIdx: number, team: 'home' | 'away', delta: number) => {
+    if (currentGame) {
+      const updatedMatch = { ...currentGame.match };
+      const newScores = [...updatedMatch.scores];
+      if (!newScores[setIdx]) return;
+      const score = { ...newScores[setIdx] };
+      score[team] = Math.max(0, score[team] + delta);
+      newScores[setIdx] = score;
+      updatedMatch.scores = newScores;
+      
+      const newGame = {
+        ...currentGame,
+        match: updatedMatch,
+        updatedAt: Date.now(),
+      };
+      setCurrentGame(newGame);
+      if (user && !user.isAnonymous) {
+        saveMatchToCloud(updatedMatch);
+      }
+    }
     setScorePulse(team);
     setTimeout(() => setScorePulse(null), 300);
-  }, [user, saveMatchToCloud]);
+  }, [user, saveMatchToCloud, currentGame]);
 
   const handleResetMatch = useCallback(() => {
     const newMatch = createDefaultMatch();
     clearMatch();
-    setMatch(newMatch);
+    setCurrentGameId(null);
+    setCurrentGame(null);
     setActiveTab('home');
     if (user && !user.isAnonymous) {
       saveMatchToCloud(newMatch);
     }
   }, [user, saveMatchToCloud]);
+
+  const handleLoadGame = useCallback((game: GameSession) => {
+    setCurrentGame(game);
+    setCurrentGameId(game.id);
+    setActiveTab('scout');
+  }, []);
+
+  const handleNewGame = useCallback(() => {
+    setCurrentGameId(null);
+    setCurrentGame(null);
+    setActiveTab('home');
+  }, []);
 
   const currentScore = match.scores[match.currentSet - 1] || { home: 0, away: 0 };
 
@@ -129,7 +203,7 @@ export default function App() {
       <div className="bg-navy-800 border-b border-surface-500/30 px-3 flex items-center gap-2 h-[52px] flex-shrink-0">
 
         {showScoreBar ? (
-          /* ─── SCOUT TAB: full score controls ─── */
+          /* SCOUT TAB: full score controls */
           <>
             {/* Score - Home */}
             <div className="flex items-center gap-1">
@@ -160,7 +234,7 @@ export default function App() {
                 {t.scout_set} {match.currentSet}
               </span>
               <span className="text-xs font-extrabold text-white">
-                🏐 SCOUT
+                VOLLEYBALL SCOUT
               </span>
             </div>
 
@@ -188,11 +262,11 @@ export default function App() {
             </div>
           </>
         ) : (
-          /* ─── ALL OTHER TABS: simple title bar ─── */
+          /* ALL OTHER TABS: simple title bar */
           <>
             <div className="flex-1 flex items-center justify-center gap-2">
               <span className="text-base font-extrabold tracking-wider text-white">
-                🏐 VOLLEYBALL SCOUT
+                VOLLEYBALL SCOUT
               </span>
               {/* Cloud sync indicator */}
               {isConfigured && user && !user.isAnonymous && (
@@ -203,14 +277,22 @@ export default function App() {
                     : "bg-green-500/10 text-green-400"
                 )}>
                   <Cloud size={10} className={isSyncing ? "animate-pulse" : ""} />
-                  {isSyncing ? "..." : "✓"}
+                  {isSyncing ? "..." : "OK"}
                 </span>
               )}
             </div>
           </>
         )}
 
-        {/* Settings button — always visible */}
+        {/* Games button - always visible */}
+        <button
+          onClick={() => setGameListOpen(true)}
+          className="w-9 h-9 rounded-xl bg-navy-600/30 hover:bg-navy-600/50 flex items-center justify-center transition-colors flex-shrink-0"
+        >
+          <History size={16} className="text-muted" />
+        </button>
+        
+        {/* Settings button - always visible */}
         <button
           onClick={() => setSettingsOpen(true)}
           className="w-9 h-9 rounded-xl bg-navy-600/30 hover:bg-navy-600/50 flex items-center justify-center transition-colors flex-shrink-0"
@@ -227,7 +309,7 @@ export default function App() {
         {activeTab === 'scout' && (
           <ScoutPage
             match={match}
-            players={players}
+            players={rosterPlayers}
             onUpdate={handleUpdateMatch}
             onScoreChange={handleScoreChange}
           />
@@ -239,7 +321,7 @@ export default function App() {
           <RosterPage rosters={rosters} onSave={handleSaveRosters} />
         )}
         {activeTab === 'summary' && (
-          <SummaryPage stats={stats} match={match} players={players} onResetMatch={handleResetMatch} />
+          <SummaryPage stats={stats} match={match} players={rosterPlayers} onResetMatch={handleResetMatch} />
         )}
       </div>
 
@@ -276,6 +358,25 @@ export default function App() {
 
       {/* Settings Modal */}
       <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      
+      {/* Game List Modal */}
+      <GameListModal
+        isOpen={gameListOpen}
+        onClose={() => setGameListOpen(false)}
+        games={games}
+        currentGameId={currentGame?.id || null}
+        onLoadGame={handleLoadGame}
+        onNewGame={handleNewGame}
+        onDeleteGame={(gameId) => {
+          if (deleteGame(gameId)) {
+            setGames(loadGames());
+            if (currentGame?.id === gameId) {
+              setCurrentGame(null);
+              setCurrentGameId(null);
+            }
+          }
+        }}
+      />
     </div>
   );
 }
