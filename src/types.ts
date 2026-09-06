@@ -101,6 +101,9 @@ export interface PlayerStats {
       total: number;
       efficiency: number;
       positivity: number;
+      successRate: number;
+      errorRate: number;
+      netEfficiency: number;
     };
   };
   totals: {

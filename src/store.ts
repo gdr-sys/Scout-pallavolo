@@ -180,6 +180,9 @@ export function calculatePlayerStats(actions: ActionEntry[], players: Player[]):
         pp, p, m, eq, total,
         efficiency: total > 0 ? Math.round(((pp - m) / total) * 100) : 0,
         positivity: total > 0 ? Math.round(((pp + p) / total) * 100) : 0,
+        successRate: total > 0 ? Math.round(((pp + p) / total) * 100) : 0,
+        errorRate: total > 0 ? Math.round((eq / total) * 100) : 0,
+        netEfficiency: total > 0 ? Math.round(((pp - m - eq) / total) * 100) : 0,
       };
     });
 

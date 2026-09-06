@@ -176,6 +176,9 @@ export type TranslationKeys = {
   report_total_actions: string;
   report_efficiency: string;
   report_positivity: string;
+  report_success_rate: string;
+  report_error_rate: string;
+  report_net_efficiency: string;
 };
 
 const it: TranslationKeys = {
@@ -343,6 +346,9 @@ const it: TranslationKeys = {
   report_total_actions: 'Azioni Totali',
   report_efficiency: 'Efficienza',
   report_positivity: 'Positività',
+  report_success_rate: 'Tasso Riuscita',
+  report_error_rate: 'Tasso Errori',
+  report_net_efficiency: 'Efficienza Netta',
 };
 
 const en: TranslationKeys = {
@@ -510,6 +516,9 @@ const en: TranslationKeys = {
   report_total_actions: 'Total Actions',
   report_efficiency: 'Efficiency',
   report_positivity: 'Positivity',
+  report_success_rate: 'Success Rate',
+  report_error_rate: 'Error Rate',
+  report_net_efficiency: 'Net Efficiency',
 };
 
 const es: TranslationKeys = {

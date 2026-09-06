@@ -67,11 +67,11 @@ export function exportCSV(stats: PlayerStats[], match: MatchState, lang: string 
 
   const header = [
     'No.', 'Name', 'Role',
-    `${fundLabels.ATT}++`, `${fundLabels.ATT}+`, `${fundLabels.ATT}-`, `${fundLabels.ATT}=`, `${fundLabels.ATT} Tot`, `${fundLabels.ATT} Eff%`, `${fundLabels.ATT} Pos%`,
-    `${fundLabels.DIF}++`, `${fundLabels.DIF}+`, `${fundLabels.DIF}-`, `${fundLabels.DIF}=`, `${fundLabels.DIF} Tot`, `${fundLabels.DIF} Eff%`, `${fundLabels.DIF} Pos%`,
-    `${fundLabels.MUR}++`, `${fundLabels.MUR}+`, `${fundLabels.MUR}-`, `${fundLabels.MUR}=`, `${fundLabels.MUR} Tot`, `${fundLabels.MUR} Eff%`, `${fundLabels.MUR} Pos%`,
-    `${fundLabels.BAT}++`, `${fundLabels.BAT}+`, `${fundLabels.BAT}-`, `${fundLabels.BAT}=`, `${fundLabels.BAT} Tot`, `${fundLabels.BAT} Eff%`, `${fundLabels.BAT} Pos%`,
-    `${fundLabels.RIC}++`, `${fundLabels.RIC}+`, `${fundLabels.RIC}-`, `${fundLabels.RIC}=`, `${fundLabels.RIC} Tot`, `${fundLabels.RIC} Eff%`, `${fundLabels.RIC} Pos%`,
+    `${fundLabels.ATT}++`, `${fundLabels.ATT}+`, `${fundLabels.ATT}-`, `${fundLabels.ATT}=`, `${fundLabels.ATT} Tot`, `${fundLabels.ATT} Eff%`, `${fundLabels.ATT} Pos%`, `${fundLabels.ATT} SR%`, `${fundLabels.ATT} ER%`, `${fundLabels.ATT} NE%`,
+    `${fundLabels.DIF}++`, `${fundLabels.DIF}+`, `${fundLabels.DIF}-`, `${fundLabels.DIF}=`, `${fundLabels.DIF} Tot`, `${fundLabels.DIF} Eff%`, `${fundLabels.DIF} Pos%`, `${fundLabels.DIF} SR%`, `${fundLabels.DIF} ER%`, `${fundLabels.DIF} NE%`,
+    `${fundLabels.MUR}++`, `${fundLabels.MUR}+`, `${fundLabels.MUR}-`, `${fundLabels.MUR}=`, `${fundLabels.MUR} Tot`, `${fundLabels.MUR} Eff%`, `${fundLabels.MUR} Pos%`, `${fundLabels.MUR} SR%`, `${fundLabels.MUR} ER%`, `${fundLabels.MUR} NE%`,
+    `${fundLabels.BAT}++`, `${fundLabels.BAT}+`, `${fundLabels.BAT}-`, `${fundLabels.BAT}=`, `${fundLabels.BAT} Tot`, `${fundLabels.BAT} Eff%`, `${fundLabels.BAT} Pos%`, `${fundLabels.BAT} SR%`, `${fundLabels.BAT} ER%`, `${fundLabels.BAT} NE%`,
+    `${fundLabels.RIC}++`, `${fundLabels.RIC}+`, `${fundLabels.RIC}-`, `${fundLabels.RIC}=`, `${fundLabels.RIC} Tot`, `${fundLabels.RIC} Eff%`, `${fundLabels.RIC} Pos%`, `${fundLabels.RIC} SR%`, `${fundLabels.RIC} ER%`, `${fundLabels.RIC} NE%`,
     'TOT++', 'TOT+', 'TOT-', 'TOT=', 'Total',
   ];
 
@@ -82,9 +82,14 @@ export function exportCSV(stats: PlayerStats[], match: MatchState, lang: string 
       const fs = s.fundamentals[f];
       return [fs.pp, fs.p, fs.m, fs.eq, fs.total, fs.efficiency, fs.positivity];
     });
+    const newMetrics = fundamentals.flatMap((f) => {
+      const fs = s.fundamentals[f];
+      return [fs.successRate, fs.errorRate, fs.netEfficiency];
+    });
     return [
       s.playerNumber, s.playerName, roleLabels[s.playerRole] || s.playerRole,
       ...fundCols,
+      ...newMetrics,
       s.totals.pp, s.totals.p, s.totals.m, s.totals.eq, s.totals.total,
     ];
   });
@@ -125,12 +130,12 @@ export function exportPDF(stats: PlayerStats[], match: MatchState, lang: string 
   let startY = 45;
 
   fundamentals.forEach((fund) => {
-    const head = [['No.', 'Name', '++', '+', '-', '=', 'Tot', 'Eff%', 'Pos%']];
+    const head = [['No.', 'Name', '++', '+', '-', '=', 'Tot', 'Eff%', 'Pos%', 'SR%', 'ER%', 'NE%']];
     const body = stats
       .filter((s) => s.fundamentals[fund].total > 0)
       .map((s) => {
         const fs = s.fundamentals[fund];
-        return [s.playerNumber, s.playerName, fs.pp, fs.p, fs.m, fs.eq, fs.total, `${fs.efficiency}%`, `${fs.positivity}%`];
+        return [s.playerNumber, s.playerName, fs.pp, fs.p, fs.m, fs.eq, fs.total, `${fs.efficiency}%`, `${fs.positivity}%`, `${fs.successRate}%`, `${fs.errorRate}%`, `${fs.netEfficiency}%`];
       });
 
     if (body.length === 0) return;
@@ -160,10 +165,33 @@ export function exportPDF(stats: PlayerStats[], match: MatchState, lang: string 
   doc.setFont('helvetica', 'bold');
   doc.text(summaryTitle, 14, startY);
 
-  const totHead = [['No.', 'Name', 'Role', '++', '+', '-', '=', 'Total']];
+  const totHead = [['No.', 'Name', 'Role', '++', '+', '-', '=', 'Total', 'Eff%', 'Pos%', 'SR%', 'ER%', 'NE%']];
   const totBody = stats
     .filter((s) => s.totals.total > 0)
-    .map((s) => [s.playerNumber, s.playerName, roleLabels[s.playerRole] || s.playerRole, s.totals.pp, s.totals.p, s.totals.m, s.totals.eq, s.totals.total]);
+    .map((s) => {
+      // Calculate overall metrics from fundamentals
+      const allFunds = ['ATT', 'DIF', 'MUR', 'BAT', 'RIC'] as Fundamental[];
+      let totalForMetrics = 0;
+      let totalSuccess = 0;
+      let totalErrors = 0;
+      let totalNet = 0;
+      
+      allFunds.forEach(f => {
+        const fs = s.fundamentals[f];
+        totalForMetrics += fs.total;
+        totalSuccess += fs.pp + fs.p;
+        totalErrors += fs.eq;
+        totalNet += fs.pp - fs.m - fs.eq;
+      });
+      
+      const overallEfficiency = totalForMetrics > 0 ? Math.round(((s.totals.pp - s.totals.m) / totalForMetrics) * 100) : 0;
+      const overallPositivity = totalForMetrics > 0 ? Math.round(((s.totals.pp + s.totals.p) / totalForMetrics) * 100) : 0;
+      const overallSuccessRate = totalForMetrics > 0 ? Math.round((totalSuccess / totalForMetrics) * 100) : 0;
+      const overallErrorRate = totalForMetrics > 0 ? Math.round((totalErrors / totalForMetrics) * 100) : 0;
+      const overallNetEfficiency = totalForMetrics > 0 ? Math.round((totalNet / totalForMetrics) * 100) : 0;
+      
+      return [s.playerNumber, s.playerName, roleLabels[s.playerRole] || s.playerRole, s.totals.pp, s.totals.p, s.totals.m, s.totals.eq, s.totals.total, `${overallEfficiency}%`, `${overallPositivity}%`, `${overallSuccessRate}%`, `${overallErrorRate}%`, `${overallNetEfficiency}%`];
+    });
 
   autoTable(doc, {
     startY: startY + 3,
@@ -220,7 +248,7 @@ export function generateWhatsAppText(stats: PlayerStats[], match: MatchState, la
       for (const f of fundamentals) {
         const fs = s.fundamentals[f];
         if (fs.total === 0) continue;
-        lines.push(`  ${fundEmoji[f]} ${fundLabels[f]}: *${effLabel} ${fs.efficiency}%* | *${posLabel} ${fs.positivity}%* (${fs.total})`);
+        lines.push(`  ${fundEmoji[f]} ${fundLabels[f]}: *${effLabel} ${fs.efficiency}%* | *${posLabel} ${fs.positivity}%* | *SR ${fs.successRate}%* | *ER ${fs.errorRate}%* | *NE ${fs.netEfficiency}%* (${fs.total})`);
       }
       lines.push('');
     }
