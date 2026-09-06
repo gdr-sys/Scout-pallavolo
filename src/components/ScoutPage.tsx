@@ -5,7 +5,7 @@ import { useI18n } from '../i18n/context';
 import { useSettings } from '../contexts/SettingsContext';
 import { cn } from '../utils/cn';
 import { triggerHaptic } from '../utils/haptic';
-import { Undo2, Plus, Star, Crosshair, RotateCcw, Shield } from 'lucide-react';
+import { Undo2, Plus, Star, Crosshair, RotateCcw, Shield, X, Check } from 'lucide-react';
 import LiveStatsBar from './LiveStatsBar';
 import TimeoutTracker from './TimeoutTracker';
 import SubstitutionPanel from './SubstitutionPanel';
@@ -18,6 +18,175 @@ interface Props {
   onScoreChange: (setIdx: number, team: 'home' | 'away', delta: number) => void;
 }
 
+// Score update modal component
+interface ScoreModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onScore: (team: 'home' | 'away' | null) => void;
+  currentHome: number;
+  currentAway: number;
+  homeTeam: string;
+  awayTeam: string;
+}
+
+function ScoreModal({ isOpen, onClose, onScore, currentHome, currentAway, homeTeam, awayTeam }: ScoreModalProps) {
+  const { t } = useI18n();
+  
+  if (!isOpen) return null;
+  
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-surface-800 border border-surface-500 rounded-2xl p-6 max-w-sm w-full animate-scale-in">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-white">{t.scout_point_home} / {t.scout_point_away}</h3>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-surface-700 hover:bg-surface-600 flex items-center justify-center text-muted transition-colors">
+            <X size={16} />
+          </button>
+        </div>
+        
+        <div className="text-center mb-6">
+          <p className="text-sm text-muted">{t.scout_select_score_team}</p>
+          <div className="flex items-center justify-center gap-4 mt-4">
+            <div className="text-center">
+              <div className="text-3xl font-black text-gold-400">{currentHome}</div>
+              <div className="text-xs font-bold text-muted uppercase">{homeTeam || 'HOME'}</div>
+            </div>
+            <div className="text-2xl font-bold text-muted">VS</div>
+            <div className="text-center">
+              <div className="text-3xl font-black text-gold-400">{currentAway}</div>
+              <div className="text-xs font-bold text-muted uppercase">{awayTeam || 'AWAY'}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-3 gap-2">
+          <button
+            onClick={() => onScore('home')}
+            className="py-3 rounded-xl bg-green-500/15 border border-green-500/30 text-green-400 font-extrabold text-sm hover:bg-green-500/20 transition-colors"
+          >
+            +{homeTeam || 'HOME'}
+          </button>
+          <button
+            onClick={() => onScore(null)}
+            className="py-3 rounded-xl bg-surface-700 border border-surface-500 text-muted font-extrabold text-sm hover:bg-surface-600 transition-colors"
+          >
+            {t.scout_no_point}
+          </button>
+          <button
+            onClick={() => onScore('away')}
+            className="py-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 font-extrabold text-sm hover:bg-red-500/20 transition-colors"
+          >
+            +{awayTeam || 'AWAY'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Player selection modal component
+interface PlayerModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSelect: (playerId: string) => void;
+  players: Player[];
+  starters: string[];
+  liberos: string[];
+}
+
+function PlayerModal({ isOpen, onClose, onSelect, players, starters, liberos }: PlayerModalProps) {
+  const { t } = useI18n();
+  
+  if (!isOpen) return null;
+  
+  const sortedPlayers = useMemo(() => {
+    const starterPlayers = players.filter(p => starters.includes(p.id)).sort((a, b) => a.number - b.number);
+    const liberoPlayers = players.filter(p => liberos.includes(p.id)).sort((a, b) => a.number - b.number);
+    const benchPlayers = players.filter(p => !starters.includes(p.id) && !liberos.includes(p.id)).sort((a, b) => a.number - b.number);
+    return { starters: starterPlayers, liberos: liberoPlayers, bench: benchPlayers };
+  }, [players, starters, liberos]);
+  
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-surface-800 border border-surface-500 rounded-2xl p-6 max-w-xs w-full animate-scale-in">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-white">{t.scout_select_player}</h3>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-surface-700 hover:bg-surface-600 flex items-center justify-center text-muted transition-colors">
+            <X size={16} />
+          </button>
+        </div>
+        
+        <div className="max-h-64 overflow-y-auto space-y-1">
+          {sortedPlayers.starters.length > 0 && (
+            <>
+              <div className="text-[9px] font-bold text-gold-400/60 uppercase tracking-wider px-1 py-0.5 sticky top-0 bg-surface-800 z-10">
+                {t.starters}
+              </div>
+              {sortedPlayers.starters.map((player) => (
+                <button
+                  key={player.id}
+                  onClick={() => onSelect(player.id)}
+                  className="w-full px-3 py-2 rounded-xl text-left flex items-center gap-2 hover:bg-surface-700 transition-colors group"
+                >
+                  <span className="w-7 h-7 rounded-lg bg-gold-400/20 flex items-center justify-center text-xs font-extrabold text-gold-400 flex-shrink-0">
+                    {player.number}
+                  </span>
+                  <span className="text-sm font-bold text-white truncate">{player.name}</span>
+                  <Star size={12} className="text-gold-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+              ))}
+            </>
+          )}
+          
+          {sortedPlayers.liberos.length > 0 && (
+            <>
+              <div className="text-[9px] font-bold text-purple-400/60 uppercase tracking-wider px-1 py-0.5 sticky top-0 bg-surface-800 z-10 mt-2">
+                {t.liberos}
+              </div>
+              {sortedPlayers.liberos.map((player) => (
+                <button
+                  key={player.id}
+                  onClick={() => onSelect(player.id)}
+                  className="w-full px-3 py-2 rounded-xl text-left flex items-center gap-2 hover:bg-surface-700 transition-colors group"
+                >
+                  <span className="w-7 h-7 rounded-lg bg-purple-400/20 flex items-center justify-center text-xs font-extrabold text-purple-400 flex-shrink-0">
+                    {player.number}
+                  </span>
+                  <span className="text-sm font-bold text-white truncate">{player.name}</span>
+                  <Shield size={12} className="text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+              ))}
+            </>
+          )}
+          
+          {sortedPlayers.bench.length > 0 && (
+            <>
+              {(sortedPlayers.starters.length > 0 || sortedPlayers.liberos.length > 0) && (
+                <div className="border-t border-surface-600/30 my-2" />
+              )}
+              <div className="text-[9px] font-bold text-muted-dark uppercase tracking-wider px-1 py-0.5">
+                {t.starters_bench}
+              </div>
+              {sortedPlayers.bench.map((player) => (
+                <button
+                  key={player.id}
+                  onClick={() => onSelect(player.id)}
+                  className="w-full px-3 py-2 rounded-xl text-left flex items-center gap-2 hover:bg-surface-700 transition-colors group"
+                >
+                  <span className="w-7 h-7 rounded-lg bg-surface-700 flex items-center justify-center text-xs font-extrabold text-muted flex-shrink-0">
+                    {player.number}
+                  </span>
+                  <span className="text-sm font-bold text-muted truncate">{player.name}</span>
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ScoutPage({ match, players, onUpdate, onScoreChange }: Props) {
   const { t } = useI18n();
   const { advancedMode } = useSettings();
@@ -27,22 +196,25 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
   const [currentRotation, setCurrentRotation] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
   const [swipeState, setSwipeState] = useState<Record<string, 'left' | 'right' | null>>({});
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
+  const [showPlayerModal, setShowPlayerModal] = useState(false);
+  const [showScoreModal, setShowScoreModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{ fundamental: Fundamental; quality: Quality } | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const toastTimeout = useRef<number | null>(null);
   const touchStartX = useRef<Record<string, number>>({});
 
   const FUNDAMENTALS: { key: Fundamental; label: string; emoji: string }[] = [
-    { key: 'ATT', label: t.fund_attack, emoji: '⚡' },
-    { key: 'RIC', label: t.fund_reception, emoji: '🛡️' },
-    { key: 'BAT', label: t.fund_serve, emoji: '🏐' },
-    { key: 'MUR', label: t.fund_block, emoji: '🧱' },
-    { key: 'DIF', label: t.fund_defense, emoji: '🤸' },
+    { key: 'ATT', label: t.fund_attack, emoji: '\u26a1' },
+    { key: 'RIC', label: t.fund_reception, emoji: '\ud83d\udee1\ufe0f' },
+    { key: 'BAT', label: t.fund_serve, emoji: '\ud83c\udfd0' },
+    { key: 'MUR', label: t.fund_block, emoji: '\ud83e\uddf1' },
+    { key: 'DIF', label: t.fund_defense, emoji: '\ud83e\udd38' },
   ];
 
   const QUALITIES: { key: Quality; label: string; color: string; bgColor: string; borderColor: string }[] = [
     { key: '++', label: '++', color: 'text-green-400', bgColor: 'bg-green-500/15', borderColor: 'border-green-500/30' },
     { key: '+', label: '+', color: 'text-blue-400', bgColor: 'bg-blue-500/15', borderColor: 'border-blue-500/30' },
-    { key: '-', label: '–', color: 'text-yellow-400', bgColor: 'bg-yellow-500/15', borderColor: 'border-yellow-500/30' },
+    { key: '-', label: '\u2013', color: 'text-yellow-400', bgColor: 'bg-yellow-500/15', borderColor: 'border-yellow-500/30' },
     { key: '=', label: '=', color: 'text-red-400', bgColor: 'bg-red-500/15', borderColor: 'border-red-500/30' },
   ];
 
@@ -77,12 +249,19 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
     toastTimeout.current = window.setTimeout(() => setToast(null), 2000);
   };
 
+  // Handle action recording with new modal flow
   const handleAction = useCallback((fundamental: Fundamental, quality: Quality, position?: { x: number; y: number }) => {
-    if (!selectedPlayer) {
-      showToast(t.scout_select_player);
-      return;
-    }
-    const player = players.find((p) => p.id === selectedPlayer);
+    // Open player modal to select player first
+    setPendingAction({ fundamental, quality });
+    setShowPlayerModal(true);
+    triggerHaptic(20);
+  }, []);
+
+  // After player is selected, record the action
+  const handlePlayerSelected = useCallback((playerId: string) => {
+    if (!pendingAction) return;
+    
+    const player = players.find((p) => p.id === playerId);
     if (!player) return;
 
     const posToUse = position || pendingPosition || undefined;
@@ -91,8 +270,8 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
       playerId: player.id,
       playerName: player.name,
       playerNumber: player.number,
-      fundamental,
-      quality,
+      fundamental: pendingAction.fundamental,
+      quality: pendingAction.quality,
       timestamp: Date.now(),
       set: match.currentSet,
       ...(advancedMode ? { 
@@ -101,18 +280,35 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
       } : {}),
     };
 
-    // Haptic feedback
-    triggerHaptic(quality === '++' ? 50 : quality === '=' ? 80 : 30);
+    // Haptic feedback based on quality
+    triggerHaptic(pendingAction.quality === '++' ? 50 : pendingAction.quality === '=' ? 80 : 30);
 
     onUpdate({
       ...match,
       actions: [...match.actions, entry],
     });
 
-    // Clear pending position
+    // Clear pending states
+    setPendingAction(null);
+    setShowPlayerModal(false);
     setPendingPosition(null);
-    showToast(`#${player.number} ${fundamental} ${quality}`);
-  }, [selectedPlayer, players, match, advancedMode, currentRotation, pendingPosition, onUpdate, t]);
+    setSelectedPlayer(null);
+    
+    showToast(`#${player.number} ${pendingAction.fundamental} ${pendingAction.quality}`);
+    
+    // If quality is ++ or --, show score update modal
+    if (pendingAction.quality === '++' || pendingAction.quality === '=') {
+      setShowScoreModal(true);
+    }
+  }, [pendingAction, players, match, advancedMode, currentRotation, pendingPosition, onUpdate]);
+
+  // Handle score update after action
+  const handleScoreUpdate = useCallback((team: 'home' | 'away' | null) => {
+    setShowScoreModal(false);
+    if (team) {
+      onScoreChange(match.currentSet - 1, team, 1);
+    }
+  }, [match, onScoreChange]);
 
   const handleUndo = () => {
     if (match.actions.length === 0) return;
@@ -122,15 +318,6 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
       actions: match.actions.slice(0, -1),
     });
     showToast(t.scout_action_undone);
-  };
-
-  const handlePointAndError = (type: 'pt' | 'err') => {
-    triggerHaptic(30);
-    if (type === 'pt') {
-      onScoreChange(match.currentSet - 1, 'home', 1);
-    } else {
-      onScoreChange(match.currentSet - 1, 'away', 1);
-    }
   };
 
   const handleNewSet = () => {
@@ -211,6 +398,8 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
     delete touchStartX.current[playerId];
   };
 
+  const currentScore = match.scores[match.currentSet - 1] || { home: 0, away: 0 };
+
   if (!match.started) {
     return (
       <div className="flex-1 flex items-center justify-center p-4">
@@ -231,7 +420,12 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
     return (
       <button
         key={player.id}
-        onClick={() => setSelectedPlayer(player.id)}
+        onClick={() => {
+          setSelectedPlayer(player.id);
+          if (pendingAction) {
+            handlePlayerSelected(player.id);
+          }
+        }}
         onTouchStart={(e) => handleTouchStart(player.id, e)}
         onTouchEnd={(e) => handleTouchEnd(player.id, e)}
         className={cn(
@@ -270,7 +464,7 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
         <span className="text-white">{match.info.homeTeam}</span>
         <span>vs</span>
         <span className="text-white">{match.info.awayTeam}</span>
-        <span>·</span>
+        <span>\u00b7</span>
         <span className="text-gold-400">{t.scout_set} {match.currentSet}</span>
         <div className="ml-auto flex gap-1.5">
           <button
@@ -310,7 +504,7 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
           ))}
           {advancedMode && selectedFundamental && (
             <span className="ml-auto text-[9px] text-muted-dark italic">
-              {t.swipe_right_positive} · {t.swipe_left_negative}
+              {t.swipe_right_positive} \u00b7 {t.swipe_left_negative}
             </span>
           )}
         </div>
@@ -319,7 +513,7 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
       {/* Favorites bar */}
       {favorites.length > 0 && (
         <div className="px-3 py-1.5 bg-surface-800/30 border-b border-surface-600/20 flex items-center gap-1.5 flex-shrink-0 overflow-x-auto">
-          <span className="text-[10px] font-bold text-gold-400/60 flex-shrink-0">⭐</span>
+          <span className="text-[10px] font-bold text-gold-400/60 flex-shrink-0">\u2b50</span>
           {favorites.map((fav) => {
             const fundInfo = FUNDAMENTALS.find(f => f.key === fav.fundamental);
             const qualInfo = QUALITIES.find(q => q.key === fav.quality);
@@ -435,16 +629,16 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
             </div>
           ))}
 
-          {/* Point / Error row */}
+          {/* Point / Error row - simplified to just show button */}
           <div className="grid grid-cols-2 gap-2 mt-3">
             <button
-              onClick={() => handlePointAndError('pt')}
+              onClick={() => handleScoreChange(match.currentSet - 1, 'home', 1)}
               className="py-3 rounded-xl bg-green-500/15 border border-green-500/30 text-green-400 font-extrabold text-xs"
             >
               {t.scout_point_home}
             </button>
             <button
-              onClick={() => handlePointAndError('err')}
+              onClick={() => handleScoreChange(match.currentSet - 1, 'away', 1)}
               className="py-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 font-extrabold text-xs"
             >
               {t.scout_point_away}
@@ -466,12 +660,12 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
                 onCourtTap={(pos) => {
                   setPendingPosition(pos);
                   triggerHaptic(20);
-                  showToast(`📍 ${pos.x}, ${pos.y}`);
+                  showToast(`\ud83d\udccd ${pos.x}, ${pos.y}`);
                 }}
               />
               {pendingPosition && (
                 <p className="text-[10px] text-gold-400 mt-1 text-center">
-                  📍 Posizione selezionata: ({pendingPosition.x}, {pendingPosition.y})
+                  \ud83d\udccd Posizione selezionata: ({pendingPosition.x}, {pendingPosition.y})
                 </p>
               )}
             </div>
@@ -518,6 +712,29 @@ export default function ScoutPage({ match, players, onUpdate, onScoreChange }: P
           )}
         </div>
       </div>
+
+      {/* Modals */}
+      <PlayerModal
+        isOpen={showPlayerModal}
+        onClose={() => {
+          setShowPlayerModal(false);
+          setPendingAction(null);
+        }}
+        onSelect={handlePlayerSelected}
+        players={players}
+        starters={match.starters || []}
+        liberos={match.liberos || []}
+      />
+      
+      <ScoreModal
+        isOpen={showScoreModal}
+        onClose={() => setShowScoreModal(false)}
+        onScore={handleScoreUpdate}
+        currentHome={currentScore.home}
+        currentAway={currentScore.away}
+        homeTeam={match.info.homeTeam}
+        awayTeam={match.info.awayTeam}
+      />
 
       {/* Toast */}
       {toast && (

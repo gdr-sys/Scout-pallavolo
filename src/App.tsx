@@ -97,18 +97,11 @@ export default function App() {
     }
   }, [currentGame]);
 
-  // Get players from selected roster
+  // Get players from selected roster - use match from currentGame or default
   const rosterPlayers = useMemo(() => {
     const roster = rosters.find((r) => r.id === match.info.rosterId);
     return roster?.players || [];
   }, [rosters, match.info.rosterId]);
-
-  // Update current game players when roster changes
-  useEffect(() => {
-    if (currentGame && rosterPlayers.length > 0) {
-      setCurrentGame({ ...currentGame, players: rosterPlayers });
-    }
-  }, [rosterPlayers, currentGame]);
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -153,6 +146,9 @@ export default function App() {
       const updatedGames = games.map(g => g.id === currentGame.id ? newGame : g);
       setGames(updatedGames);
       
+      // Persist to database
+      await saveGame(newGame);
+      
       if (user && !user.isAnonymous) {
         saveMatchToCloud(updated);
       }
@@ -178,6 +174,9 @@ export default function App() {
       
       const updatedGames = games.map(g => g.id === currentGame.id ? newGame : g);
       setGames(updatedGames);
+      
+      // Persist to database
+      await saveGame(newGame);
       
       if (user && !user.isAnonymous) {
         saveMatchToCloud(updatedMatch);
